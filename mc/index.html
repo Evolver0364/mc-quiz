@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="名词解释">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+
+<link rel="apple-touch-icon" href="../icon-180.png">
+<link rel="icon" href="../icon-192.png">
+<title>名词解释练习器 · 基因工程</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#fff; --ink:#1b1f24; --muted:#6b7280; --line:#e5e7eb;
+    --brand:#2f6feb; --brand-soft:#eaf1ff;
+    --good:#12805c; --good-bg:#e6f6ef;
+    --ok:#2f6feb;  --ok-bg:#eaf1ff;
+    --warn:#9a6700;--warn-bg:#fff4d6;
+    --bad:#b42318; --bad-bg:#fdecea;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#14161a; --card:#1c1f25; --ink:#e8eaed; --muted:#9aa3ad; --line:#2c3138;
+      --brand:#7aa2ff; --brand-soft:#1e2a44;
+      --good:#4ade80; --good-bg:#132a20;
+      --ok:#7aa2ff;  --ok-bg:#1e2a44;
+      --warn:#fbbf24;--warn-bg:#33280f;
+      --bad:#f87171; --bad-bg:#3a1715;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:820px;margin:0 auto;padding:18px 16px 64px}
+
+  header.top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  header.top h1{font-size:18px;margin:0;letter-spacing:.02em}
+  .badge{font-size:12px;color:var(--good);background:var(--good-bg);border-radius:999px;padding:2px 9px}
+  .stats{margin-left:auto;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  select,button{font:inherit}
+  select{
+    appearance:none;background:var(--card);color:var(--ink);border:1px solid var(--line);
+    border-radius:10px;padding:8px 30px 8px 11px;font-size:14px;max-width:100%;
+    background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 16px) 52%,calc(100% - 11px) 52%;
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+  }
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 20px 6px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
+  .chip{border:1px solid var(--line);border-radius:999px;padding:1px 9px}
+  .chip.star3{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 40%,transparent)}
+  .chip.star2{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+  .counter{margin-left:auto;font-variant-numeric:tabular-nums}
+
+  .term{font-size:28px;line-height:1.3;font-weight:700;margin:6px 0 2px;word-break:break-word}
+  .hint{font-size:13px;color:var(--muted);min-height:20px;margin-bottom:12px}
+  .hint button{background:none;border:0;color:var(--brand);cursor:pointer;padding:0;font-size:13px;text-decoration:underline dotted}
+
+  textarea{
+    width:100%;min-height:132px;resize:vertical;padding:13px 14px;border-radius:12px;
+    border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;line-height:1.6;
+  }
+  textarea:focus{outline:2px solid color-mix(in srgb,var(--brand) 35%,transparent);outline-offset:1px;border-color:var(--brand)}
+
+  .actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0 16px}
+  button.btn{
+    border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:10px 16px;cursor:pointer;font-size:15px;transition:transform .04s ease,background .15s;
+  }
+  button.btn:active{transform:translateY(1px)}
+  button.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+  button.btn.ghost{background:transparent}
+  button.btn:disabled{opacity:.45;cursor:not-allowed}
+  .kbd{font-size:12px;opacity:.7;margin-left:6px}
+
+  .result{border-top:1px dashed var(--line);padding:16px 0 10px;margin-top:4px}
+  .score{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .score .num{font-size:40px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .score .num small{font-size:15px;font-weight:600;color:var(--muted)}
+  .tag{border-radius:999px;padding:3px 11px;font-size:13px;font-weight:600}
+  .tag.good{color:var(--good);background:var(--good-bg)}
+  .tag.ok{color:var(--ok);background:var(--ok-bg)}
+  .tag.warn{color:var(--warn);background:var(--warn-bg)}
+  .tag.bad{color:var(--bad);background:var(--bad-bg)}
+  .score .sub{font-size:13px;color:var(--muted)}
+
+  .kps{list-style:none;padding:0;margin:14px 0 4px}
+  .kps li{display:flex;gap:9px;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
+  .kps li:first-child{border-top:0}
+  .kps .ico{flex:0 0 20px;font-size:14px;line-height:1.7}
+  .kps .txt{flex:1}
+  .kps mark{background:transparent;color:var(--bad);font-weight:700;border-bottom:2px solid color-mix(in srgb,var(--bad) 55%,transparent)}
+  .kps .cov{font-size:12px;color:var(--muted);margin-left:6px;white-space:nowrap}
+
+  .answer{margin-top:14px;background:var(--brand-soft);border-radius:12px;padding:13px 15px;font-size:15px}
+  .answer h3{margin:0 0 6px;font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:600}
+  .answer p{margin:0}
+
+  .note{font-size:12.5px;color:var(--muted);margin:12px 0 0;line-height:1.6}
+  .nav{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+  .nav .spacer{flex:1}
+  .toast{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(8px);
+    background:#111;color:#fff;padding:9px 15px;border-radius:10px;font-size:14px;
+    opacity:0;pointer-events:none;transition:.2s;z-index:20;max-width:90vw
+  }
+  .toast.show{opacity:.95;transform:translateX(-50%) translateY(0)}
+  footer.foot{margin-top:22px;font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+  footer.foot button{background:none;border:0;color:var(--muted);text-decoration:underline dotted;cursor:pointer;padding:0;font-size:12px}
+  /* —— 手机优先：iPhone 真机上要调的几处—— */
+  @media (max-width:560px){
+    .wrap{padding:14px 14px calc(26px + env(safe-area-inset-bottom))}
+    header.top{gap:8px;margin-bottom:10px}
+    .stats{width:100%;margin-left:0;font-size:12.5px}
+    .filters{gap:7px}
+    .filters select{flex:1 1 calc(50% - 7px);min-height:46px;font-size:16px}
+    .filters select:first-child{flex:1 1 100%}
+    .kbd{display:none}
+    .card{padding:16px 15px 4px}
+    .meta{font-size:12px}
+    .term{font-size:26px;line-height:1.35}
+    textarea{min-height:150px;font-size:17px;padding:14px}
+    button.btn{min-height:48px;font-size:16px;flex:1 1 auto}
+    button.btn.primary{flex:1 1 100%}
+    .actions{gap:8px;margin:12px 0 14px}
+    .score{gap:10px}
+    .score .num{font-size:38px}
+    .score .sub{flex:1 1 100%}
+    .kps li{font-size:15.5px;padding:11px 0}
+    .answer{font-size:15.5px;padding:14px}
+    .note{font-size:12.5px}
+    .nav .btn{flex:1 1 46%}
+    .nav .spacer{display:none}
+    .toast{bottom:calc(18px + env(safe-area-inset-bottom))}
+    footer.foot{gap:12px;font-size:12.5px}
+  }
+  /* 触屏通用：去掉点击高亮和双击缩放延迟，按钮不弹长按菜单 */
+  button,select,textarea,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  button.btn{-webkit-touch-callout:none;user-select:none}
+  /* iOS 上表单控件小于 16px 会在聚焦时把整页放大 */
+  select,textarea{font-size:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 id="title">名词解释练习器</h1>
+    <span class="badge">纯本地 · 不联网 · 不花 token</span>
+    <span class="stats" id="stats"></span>
+  </header>
+
+  <div class="filters">
+    <select id="f-chapter" aria-label="章节"></select>
+    <select id="f-stars" aria-label="重要程度">
+      <option value="all">全部星级</option>
+      <option value="3">★★★ 必须默写</option>
+      <option value="2">★★ 能复述</option>
+      <option value="1">★ 能识别</option>
+    </select>
+    <select id="f-mode" aria-label="出题顺序">
+      <option value="seq">按顺序</option>
+      <option value="random">随机</option>
+      <option value="new">只刷没练过的</option>
+      <option value="wrong">只刷错题</option>
+    </select>
+  </div>
+
+  <main class="card" id="card">
+    <div class="meta">
+      <span class="chip" id="c-chapter"></span>
+      <span class="chip" id="c-star"></span>
+      <span class="counter" id="c-counter"></span>
+    </div>
+    <div class="term" id="term">—</div>
+    <div class="hint" id="hint"></div>
+
+    <textarea id="input" placeholder="用你自己的话写出定义，写完后按 Ctrl+Enter（Mac 用 ⌘+Enter）提交" spellcheck="false"></textarea>
+
+    <div class="actions">
+      <button class="btn primary" id="btn-submit">提交判分<span class="kbd">Ctrl+↵</span></button>
+      <button class="btn" id="btn-reveal">直接看答案</button>
+      <button class="btn ghost" id="btn-skip">跳过</button>
+    </div>
+
+    <section class="result" id="result" hidden>
+      <div class="score">
+        <div class="num" id="r-score">0<small> 分</small></div>
+        <span class="tag" id="r-tag">—</span>
+        <span class="sub" id="r-sub"></span>
+      </div>
+      <ul class="kps" id="r-kps"></ul>
+      <div class="answer">
+        <h3>标准答案</h3>
+        <p id="r-answer"></p>
+      </div>
+      <p class="note">本地判分只看<b>要点覆盖</b>：答对意思但换个说法可能会被标红，答错的内容它也不会发现——所以标准答案永远一起给你，对不上时以它为准。</p>
+    </section>
+
+    <div class="nav">
+      <button class="btn ghost" id="btn-prev">← 上一题</button>
+      <span class="spacer"></span>
+      <button class="btn" id="btn-next">下一题 →</button>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <button id="btn-wrongbook">错题本（<span id="wrong-count">0</span>）</button>
+    <button id="btn-export">导出进度</button>
+    <button id="btn-reset">清空进度</button>
+    <span id="foot-meta"></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>/*
+ * 判分核心（两个练习器共用：名词解释 / 简答）
+ * 纯本地：不联网、不调用任何模型、不花 token。
+ * 会被内联进各自的 HTML，也供 build.mjs / selftest.mjs 在 node 里 require（通过 globalThis.GradeCore）。
+ *
+ * 共同思路：
+ *   1. 归一化（全半角、大小写、去空白标点）
+ *   2. 把标准答案切成「要点」
+ *   3. 每个要点的覆盖度 = 它的「二字片段（bigram）」被学习者作答命中的比例
+ *   4. 覆盖 70% 即视为该要点拿满分
+ *
+ * 两个入口：
+ *   grade(def, answer)                    名词解释：整条定义切要点，百分制
+ *   gradePoints(points, answer, fullMark)  简答：按「采分点」给分，满分 8 分制
+ */
+(function () {
+  'use strict';
+
+  var PUNCT = /[\s\u3000，。；：、！？·—－–\-_/\\|~`!@#$%^&*+=:;,.?'"“”‘’（）()\[\]【】《》<>…]/g;
+
+  function normalize(s) {
+    return String(s == null ? '' : s)
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(PUNCT, '');
+  }
+
+  function bigrams(s) {
+    var set = new Set();
+    if (!s) return set;
+    if (s.length === 1) { set.add(s); return set; }
+    for (var i = 0; i < s.length - 1; i++) set.add(s.slice(i, i + 2));
+    return set;
+  }
+
+  // 定义 → 要点列表（保留原文，用于展示）
+  // 只在 。；和过长的逗号句处切，等号（本质＝…、公式 N = …）一律原样留着，
+  // 否则「本质」这类标签会被切出来当成独立要点，判分时会误报「漏了本质」。
+  function splitKeypoints(def) {
+    var raw = String(def == null ? '' : def).trim();
+    if (!raw) return [];
+    var parts = raw.split(/[；;。]/).map(function (s) { return s.trim(); }).filter(Boolean);
+    var out = [];
+    parts.forEach(function (p) {
+      if (normalize(p).length <= 46) {
+        out.push(p);
+      } else {
+        p.split(/[，,]/).map(function (s) { return s.trim(); }).filter(Boolean)
+          .forEach(function (x) { out.push(x); });
+      }
+    });
+    // 过短的碎片并回上一条
+    var merged = [];
+    out.forEach(function (piece) {
+      var n = normalize(piece).length;
+      if (n === 0) return;
+      if (n < 8 && merged.length) {
+        merged[merged.length - 1] = merged[merged.length - 1] + '，' + piece;
+      } else {
+        merged.push(piece);
+      }
+    });
+    return merged;
+  }
+
+  // 逐字标记「作答里没有覆盖到的部分」，用于展示差在哪里
+  function markMissing(text, ansGrams) {
+    var segs = [];
+    var i = 0;
+    while (i < text.length) {
+      var g = text.slice(i, i + 2);
+      var miss = i < text.length - 1 ? !ansGrams.has(g) : true;
+      if (!segs.length || segs[segs.length - 1].miss !== miss) segs.push({ t: text[i], miss: miss });
+      else segs[segs.length - 1].t += text[i];
+      i++;
+    }
+    return segs;
+  }
+
+  function levelOf(score) {
+    if (score >= 85) return { label: '优秀', tone: 'good', tip: '基本能默写了' };
+    if (score >= 70) return { label: '良好', tone: 'ok', tip: '主干对了，补上标红的部分' };
+    if (score >= 55) return { label: '及格', tone: 'warn', tip: '要点缺得比较多，建议今天再刷一遍' };
+    return { label: '待加强', tone: 'bad', tip: '先把标准答案读两遍，再回头重写' };
+  }
+
+  // 一个要点对一份作答的覆盖情况
+  function coverageOf(text, ansNorm, ansGrams) {
+    var kn = normalize(text);
+    var kg = bigrams(kn);
+    var hit = 0;
+    if (kn.length <= 1) {
+      hit = kn && ansNorm.indexOf(kn) >= 0 ? 1 : 0;
+      kg = new Set([kn || ' ']);
+    } else {
+      kg.forEach(function (g) { if (ansGrams.has(g)) hit++; });
+    }
+    var cov = kg.size ? hit / kg.size : 0;
+    return { cov: cov, mark: markMissing(text, ansGrams) };
+  }
+
+  // —— 名词解释：整条定义切要点，百分制 ——
+  function grade(def, answer) {
+    var kps = splitKeypoints(def);
+    var ansNorm = normalize(answer);
+    var ansGrams = bigrams(ansNorm);
+    var totalW = 0, gotW = 0;
+    var items = kps.map(function (k) {
+      var c = coverageOf(k, ansNorm, ansGrams);
+      var w = Math.max(normalize(k).length, 2);
+      var credit = Math.min(1, c.cov / 0.7);
+      totalW += w;
+      gotW += w * credit;
+      return {
+        text: k,
+        coverage: Math.round(c.cov * 100),
+        status: c.cov >= 0.6 ? 'hit' : (c.cov >= 0.3 ? 'part' : 'miss'),
+        mark: c.mark
+      };
+    });
+    var score = totalW ? Math.round((gotW / totalW) * 100) : 0;
+    if (!ansNorm) score = 0;
+    return {
+      score: score,
+      level: levelOf(score),
+      items: items,
+      hitCount: items.filter(function (i) { return i.status === 'hit'; }).length,
+      totalCount: items.length,
+      chars: ansNorm.length,
+      empty: !ansNorm
+    };
+  }
+
+  // —— 简答：按采分点给分，满分默认 8 分 ——
+  // points: [{ label, body }]，来自题库解析；分值按要点字数分配，最小 0.5
+  function allocatePoints(points, fullMark) {
+    var weights = points.map(function (p) { return Math.max(normalize(p.label + p.body).length, 2); });
+    var total = weights.reduce(function (a, b) { return a + b; }, 0);
+    var scores = weights.map(function (w) { return Math.max(0.5, Math.round((w / total) * fullMark * 2) / 2); });
+    var sum = scores.reduce(function (a, b) { return a + b; }, 0);
+    var diff = Math.round((fullMark - sum) * 2) / 2;
+    if (diff !== 0 && scores.length) {
+      var maxIdx = scores.indexOf(Math.max.apply(null, scores));
+      scores[maxIdx] = Math.max(0.5, scores[maxIdx] + diff);
+    }
+    return scores;
+  }
+
+  function gradePoints(points, answer, fullMark) {
+    fullMark = fullMark || 8;
+    var ansNorm = normalize(answer);
+    var ansGrams = bigrams(ansNorm);
+    var alloc = allocatePoints(points, fullMark);
+    var got = 0;
+    var items = points.map(function (p, i) {
+      var text = p.label ? p.label + '：' + p.body : p.body;
+      var c = coverageOf(text, ansNorm, ansGrams);
+      if (!ansNorm) c.cov = 0;
+      var status = c.cov >= 0.6 ? 'hit' : (c.cov >= 0.3 ? 'part' : 'miss');
+      // 判成「漏」就一分不给，否则会出现「❌ 0.5/1.5 分」这种自相矛盾的展示
+      var credit = status === 'miss' ? 0 : Math.min(1, c.cov / 0.7);
+      got += alloc[i] * credit;
+      return {
+        no: i + 1,
+        label: p.label || '',
+        body: p.body,
+        full: alloc[i],
+        got: Math.round(alloc[i] * credit * 2) / 2,
+        coverage: Math.round(c.cov * 100),
+        status: status,
+        // 标红只覆盖正文：标签在界面上单独加粗显示，重复标一次会看起来像复制粘贴
+        mark: markMissing(p.body, ansGrams)
+      };
+    });
+    var score = Math.round(Math.min(got, fullMark) * 2) / 2;
+    var ratio = fullMark ? score / fullMark : 0;
+    var count = function (s) { return items.filter(function (i) { return i.status === s; }).length; };
+    return {
+      score: score,
+      fullMark: fullMark,
+      ratio: ratio,
+      level: levelOf(ratio * 100),
+      items: items,
+      hitCount: count('hit'),
+      partCount: count('part'),
+      missCount: count('miss'),
+      totalCount: items.length,
+      chars: ansNorm.length,
+      empty: !ansNorm
+    };
+  }
+
+  globalThis.GradeCore = {
+    normalize: normalize,
+    bigrams: bigrams,
+    splitKeypoints: splitKeypoints,
+    coverageOf: coverageOf,
+    grade: grade,
+    gradePoints: gradePoints,
+    allocatePoints: allocatePoints,
+    levelOf: levelOf
+  };
+})();
+</script>
+<script>const DATA = {"meta":{"title":"基因工程 · 名词解释","source":"01_背诵资料_名词解释库.md","total":227,"chapters":["第一章 基因工程概述","第二章 分子克隆工具酶","第三章 分子克隆载体","第四章 表达载体","第五章 核酸分子的分离、检测与分析技术","第六章 DNA 诱变","第七章 PCR 技术及其应用","第八章 DNA 测序技术","第九章 基因组研究技术","第十章 DNA 文库的构建及目的基因的筛选","第十一章 植物基因工程","第十二章 动物基因工程","第十三章 酵母基因工程","第十四章 细菌基因工程","第十五章 病毒基因工程","第十六章 医药基因工程","第十七章 基因工程的安全性"],"builtAt":"2026-11-07"},"items":[{"n":1,"ch":"第一章 基因工程概述","stars":3,"term":"基因工程","en":"gene engineering","def":"通过基因操作实现基因重组、定向改造生物体或人类自身并具明确应用目的的活动。本质＝对基因进行分离、重组、转移、表达，使受体获得新性状。"},{"n":2,"ch":"第一章 基因工程概述","stars":3,"term":"基因治疗","en":"gene therapy","def":"将健康（正常）基因移植到相关组织或细胞，使遗传病症状减缓甚至消失。包括基因修正、基因替换、基因增补；不改变个体遗传性状、不传给下一代。"},{"n":3,"ch":"第一章 基因工程概述","stars":3,"term":"合成生物学","en":"","def":"通过基因工程手段创造新生物体或合成新功能、新结构产物。要义：从\"基因\"寻找与改造开始，将不同来源功能基因组装成簇，重构目标化合物合成途径，优化物质能量供应，操纵\"细胞工厂\"高效合成目标化合物。"},{"n":4,"ch":"第一章 基因工程概述","stars":3,"term":"生物反应器","en":"bioreactor","def":"通过基因工程将细胞或生物体改造为高效生产生物活性物质的\"工厂\"，可为微生物、动物细胞、转基因动物或转基因植物。"},{"n":5,"ch":"第一章 基因工程概述","stars":2,"term":"基因","en":"gene","def":"遗传物质的基本单位，是核酸分子上的一段片段；可连续可不连续，可 DNA 可 RNA，可在染色体上也可在染色体外（质粒、线粒体、叶绿体）。"},{"n":6,"ch":"第一章 基因工程概述","stars":2,"term":"间断基因","en":"interrupted gene","def":"编码序列中间插有与氨基酸编码无关的 DNA 间隔区（内含子），使基因分隔成不连续区段。"},{"n":7,"ch":"第一章 基因工程概述","stars":2,"term":"基因克隆","en":"","def":"利用重组 DNA 技术分离（扩增）目的基因的过程，一定程度上等同\"基因的分离\"。"},{"n":8,"ch":"第一章 基因工程概述","stars":2,"term":"基因操作","en":"gene manipulation","def":"对基因进行分离、分析、改造、检测、表达、重组和转移等操作的总称。"},{"n":9,"ch":"第一章 基因工程概述","stars":2,"term":"基因重组","en":"","def":"广义＝任何造成基因型变化的基因交流过程；狭义＝仅涉及 DNA 分子内\"断裂—复合\"的基因交流。"},{"n":10,"ch":"第一章 基因工程概述","stars":2,"term":"克隆","en":"clone","def":"作动词＝从单一祖先产生同一 DNA 分子/细胞群体的过程；作名词＝从共同祖先无性繁殖下来的一群遗传上同一的 DNA 分子/细胞/个体。"},{"n":11,"ch":"第一章 基因工程概述","stars":2,"term":"启动子","en":"promoter","def":"DNA 分子中与 RNA 聚合酶特异结合、使转录开始的部位。"},{"n":12,"ch":"第一章 基因工程概述","stars":2,"term":"增强子","en":"enhancer","def":"能增强（促进）转录起始、但本身不是启动子一部分的 DNA 序列；去除会大大降低转录水平，插入 DNA 任何部位仍能保持正常转录。"},{"n":13,"ch":"第一章 基因工程概述","stars":2,"term":"感受态细胞","en":"competent cell","def":"经物理（如电激）或化学（如 CaCl₂）处理、处于易吸收外源 DNA 状态的宿主细胞。"},{"n":14,"ch":"第一章 基因工程概述","stars":2,"term":"终止子","en":"terminator","def":"位于 poly(A) 位点下游，提供 RNA 聚合酶转录终止信号的 DNA 序列；分依赖 ρ 因子与不依赖 ρ 因子两类，终止点前常有回文（茎环）结构。"},{"n":15,"ch":"第一章 基因工程概述","stars":2,"term":"核糖体结合位点","en":"RBS","def":"起始密码子 AUG 上游的一段非翻译区，含 SD 序列，促使核糖体结合到 mRNA。"},{"n":16,"ch":"第一章 基因工程概述","stars":2,"term":"SD 序列","en":"Shine-Dalgarno sequence","def":"mRNA 起始部位与核糖体结合的碱基序列，与 16S rRNA 3′ 端富含嘧啶的序列互补，启动翻译。"},{"n":17,"ch":"第一章 基因工程概述","stars":2,"term":"亚克隆","en":"subcloning","def":"将目的基因对应的一小段 DNA 从较长克隆片段中分离出来，便于表达、测序、突变等操作。"},{"n":18,"ch":"第一章 基因工程概述","stars":2,"term":"遗传修饰生物体","en":"GMO","def":"通过分子生物学技术修饰基因组、使基因组成和性状改变了的生物体。"},{"n":19,"ch":"第一章 基因工程概述","stars":1,"term":"转录单位","en":"","def":"从启动区到终止区的一段距离，可含一个或多个基因。"},{"n":20,"ch":"第一章 基因工程概述","stars":1,"term":"上游/下游","en":"","def":"转录起始点左侧（5′ 方向）为上游，右侧（3′ 方向）为下游。"},{"n":21,"ch":"第一章 基因工程概述","stars":1,"term":"内含子/外显子","en":"","def":"内含子＝真核基因中不能翻译成蛋白质、但可被转录的 DNA 片段（有相对性）；外显子＝能翻译成蛋白质的间断基因片段。"},{"n":22,"ch":"第一章 基因工程概述","stars":1,"term":"遗传密码","en":"","def":"mRNA 上每三个核苷酸组成的三联体，决定氨基酸种类与合成顺序。"},{"n":23,"ch":"第二章 分子克隆工具酶","stars":3,"term":"限制性核酸内切酶","en":"","def":"能识别特定核苷酸序列并切割双链 DNA（切断磷酸二酯键、不破坏核苷酸碱基）的酶，是基因操作的\"剪刀\"。Ⅱ 类最常用：识别回文对称序列，在序列内部或附近切割，需 Mg²⁺，不需 ATP。"},{"n":24,"ch":"第二章 分子克隆工具酶","stars":3,"term":"同裂酶","en":"isoschizomer","def":"识别相同序列的限制酶，但切割位点可能不同。"},{"n":25,"ch":"第二章 分子克隆工具酶","stars":3,"term":"同尾酶","en":"isocaudamer","def":"来源不同、识别序列不同，但产生相同黏性末端的酶。"},{"n":26,"ch":"第二章 分子克隆工具酶","stars":3,"term":"黏性末端","en":"cohesive/sticky end","def":"限制酶在回文对称轴两侧错位切割，产生单链突出末端；相同末端可互补配对并在连接酶作用下连接。"},{"n":27,"ch":"第二章 分子克隆工具酶","stars":3,"term":"平末端","en":"blunt end","def":"在回文对称轴上同时切割两条链，产生无碱基突出的末端。"},{"n":28,"ch":"第二章 分子克隆工具酶","stars":3,"term":"星星活性","en":"star activity","def":"在非标准条件（高甘油、过量酶、低盐、高 pH、有机溶剂、错误二价阳离子等）下，限制酶切割与识别序列相似序列、特异性改变的现象。"},{"n":29,"ch":"第二章 分子克隆工具酶","stars":3,"term":"Klenow 片段","en":"Klenow fragment","def":"E.coli DNA 聚合酶 I 经蛋白酶水解去除 5′→3′ 外切核酸酶活性后的大片段，保留 5′→3′ 聚合酶活性和 3′→5′ 外切核酸酶活性；用于补平 3′ 凹端、抹平 3′ 凸端、末端标记、合成 cDNA 第二链。"},{"n":30,"ch":"第二章 分子克隆工具酶","stars":3,"term":"T4 DNA 连接酶","en":"","def":"催化 DNA 5′ 磷酸基与 3′ 羟基之间形成磷酸二酯键，可连黏端和平端（最常用）。"},{"n":31,"ch":"第二章 分子克隆工具酶","stars":3,"term":"反转录酶","en":"reverse transcriptase","def":"依赖于 RNA 的 DNA 聚合酶，有 5′→3′ 合成 DNA 活性，无 3′→5′ 外切活性；来自 AMV 或 Mo-MLV；用于 cDNA 第一链合成、RT-PCR 等。"},{"n":32,"ch":"第二章 分子克隆工具酶","stars":3,"term":"末端转移酶","en":"terminal transferase","def":"来源于小牛胸腺，不依赖模板的 DNA 聚合酶，在二价阳离子存在下催化 dNTP 加到 DNA 3′-OH 端；用于加同聚尾、末端标记。"},{"n":33,"ch":"第二章 分子克隆工具酶","stars":3,"term":"T4 多核苷酸激酶","en":"PNK","def":"催化 ATP 的 γ-磷酸基转移到 DNA/RNA 5′ 端（磷酸化、末端标记）。"},{"n":34,"ch":"第二章 分子克隆工具酶","stars":3,"term":"碱性磷酸酶","en":"CIP/CIAP","def":"催化去除 DNA/RNA 5′ 磷酸，防止载体自身环化连接。"},{"n":35,"ch":"第二章 分子克隆工具酶","stars":2,"term":"限制与修饰","en":"","def":"宿主特异性降解外源 DNA 称限制；外源 DNA 通过甲基化避免被降解称修饰。"},{"n":36,"ch":"第二章 分子克隆工具酶","stars":2,"term":"甲基化酶","en":"","def":"在识别位点引入甲基保护宿主 DNA 不被相应限制酶切割；Dam 甲基化 GATC 中 A 的 N6 位，Dcm 甲基化 CCAGG/CCTGG 中 C 的 C5 位。"},{"n":37,"ch":"第二章 分子克隆工具酶","stars":2,"term":"位点偏爱","en":"site preference","def":"同一限制酶对同一介质中不同位置的同一识别序列表现不同切割效率。"},{"n":38,"ch":"第二章 分子克隆工具酶","stars":2,"term":"切口酶","en":"nicking enzyme","def":"只切割双链 DNA 中一条链、产生单链缺口的限制酶。"},{"n":39,"ch":"第二章 分子克隆工具酶","stars":2,"term":"归位内切酶","en":"homing endonuclease","def":"存在于线粒体、叶绿体、核 DNA 及 T 偶数噬菌体中的内切酶。"},{"n":40,"ch":"第二章 分子克隆工具酶","stars":2,"term":"大肠杆菌 DNA 聚合酶 I","en":"","def":"具有 5′→3′ 聚合酶、5′→3′ 外切、3′→5′ 外切三种活性；5′→3′ 外切活性用于切口平移标记 DNA。"},{"n":41,"ch":"第二章 分子克隆工具酶","stars":2,"term":"T4 噬菌体 DNA 聚合酶","en":"","def":"与 Klenow 相似，但 3′→5′ 外切活性更强（约 200 倍），不从单链模板置换引物；用于补平/抹平末端、标记、制造黏端。"},{"n":42,"ch":"第二章 分子克隆工具酶","stars":2,"term":"T7 噬菌体 DNA 聚合酶","en":"","def":"持续合成能力最强的 DNA 聚合酶，用于长模板引物延伸；改造后为测序酶。"},{"n":43,"ch":"第二章 分子克隆工具酶","stars":2,"term":"测序酶","en":"sequenase","def":"改造的 T7 DNA 聚合酶，切除 3′→5′ 外切活性，持续合成能力强，用于双脱氧终止法测长片段。"},{"n":44,"ch":"第二章 分子克隆工具酶","stars":2,"term":"耐热 DNA 聚合酶","en":"","def":"高温下有活性的 DNA 聚合酶（Taq、Vent、Pfu 等），用于 PCR。Taq 在产物 3′ 端随机加 A（用于 T/A 克隆）。"},{"n":45,"ch":"第二章 分子克隆工具酶","stars":2,"term":"Bst DNA 聚合酶","en":"","def":"嗜热脂肪芽胞杆菌来源，5′→3′ 聚合酶 + 双链模板 5′→3′ 外切活性，无 3′→5′ 外切，有反转录活性；65℃ 工作，用于等温扩增（LAMP/SDA）。"},{"n":46,"ch":"第二章 分子克隆工具酶","stars":2,"term":"环介导等温扩增","en":"LAMP","def":"用 Bst 聚合酶在 60–65℃ 恒温下以链置换方式自动循环扩增，无需热变性。"},{"n":47,"ch":"第二章 分子克隆工具酶","stars":2,"term":"链置换扩增","en":"SDA","def":"扩增引物带切口酶识别位点，在 Bst 聚合酶链置换能力下扩增，产物被 Bumper 引物置换。"},{"n":48,"ch":"第二章 分子克隆工具酶","stars":2,"term":"RNA 聚合酶","en":"","def":"以 DNA 为模板合成 RNA 的酶，由核心酶和 σ 因子组成；σ 因子识别转录起始部位。SP6/T7 RNA 聚合酶用于合成 RNA 探针、体外转录。"},{"n":49,"ch":"第二章 分子克隆工具酶","stars":2,"term":"大肠杆菌 DNA 连接酶","en":"","def":"需 NAD⁺，平端连接效率低，常用于置换合成法合成 cDNA。"},{"n":50,"ch":"第二章 分子克隆工具酶","stars":2,"term":"S1 核酸酶","en":"","def":"降解单链 DNA/RNA，产生带 5′ 磷酸的单核苷酸/寡核苷酸；用于分析 DNA:RNA 杂交体、去单链尾产生平端、降解发夹结构。"},{"n":51,"ch":"第二章 分子克隆工具酶","stars":2,"term":"绿豆核酸酶","en":"","def":"与 S1 相似但更温和，将突出末端变成平末端。"},{"n":52,"ch":"第二章 分子克隆工具酶","stars":2,"term":"DNase I","en":"","def":"优先从嘧啶核苷酸处水解双/单链 DNA 的内切酶；用于切口平移、DNase I 足迹分析蛋白-DNA 复合物、去除 RNA 中的 DNA。"},{"n":53,"ch":"第二章 分子克隆工具酶","stars":2,"term":"RNase A","en":"","def":"特异攻击 RNA 嘧啶残基 3′ 端的内切酶，去除 DNA:RNA 中未杂交 RNA、去 DNA 中 RNA。"},{"n":54,"ch":"第二章 分子克隆工具酶","stars":2,"term":"RNase H","en":"","def":"特异性水解与 DNA 杂交的 RNA 的磷酸二酯键；cDNA 第二链合成前去除 RNA、去 poly(A) 尾。"},{"n":55,"ch":"第二章 分子克隆工具酶","stars":2,"term":"外切核酸酶Ⅲ","en":"Exonuclease Ⅲ","def":"从 dsDNA 3′-OH 逐个去除单核苷酸，产生长单链区。"},{"n":56,"ch":"第二章 分子克隆工具酶","stars":2,"term":"Bal 31 核酸酶","en":"","def":"从线性 DNA 两条链 3′ 端去除单核苷酸（缩短 DNA），用于缺失突变、构建嵌套缺失体、制作酶切图。"},{"n":57,"ch":"第二章 分子克隆工具酶","stars":2,"term":"Cre 重组酶","en":"","def":"噬菌体 P1 的 I 型拓扑酶，催化两个 loxP 位点间位点特异性重组。"},{"n":58,"ch":"第二章 分子克隆工具酶","stars":2,"term":"蛋白酶 K","en":"","def":"广谱丝氨酸蛋白酶，降解内源蛋白，利于完整 DNA/RNA 分离。"},{"n":59,"ch":"第二章 分子克隆工具酶","stars":2,"term":"溶菌酶","en":"","def":"水解细菌细胞壁肽聚糖的酶，用于破壁。"},{"n":60,"ch":"第二章 分子克隆工具酶","stars":1,"term":"回文对称结构","en":"","def":"双链 DNA 中方向相反、结构相同的反向重复序列。"},{"n":61,"ch":"第二章 分子克隆工具酶","stars":1,"term":"酶单位","en":"unit","def":"建议缓冲液和温度下，20 μL 反应液 1 h 使 1 μg DNA 完全消化所需酶量。"},{"n":62,"ch":"第二章 分子克隆工具酶","stars":1,"term":"Weiss 单位","en":"","def":"37℃ 20 min 催化 1 nmol ³²P 从焦磷酸置换到 [γ-³²P]ATP 所需酶量。"},{"n":63,"ch":"第二章 分子克隆工具酶","stars":1,"term":"NEB 连接单位","en":"","def":"16℃ 30 min 内连接 50% HindⅢ 切过的 λDNA 所需酶量（1 Weiss ≈ 67 NEB 单位）。"},{"n":64,"ch":"第二章 分子克隆工具酶","stars":1,"term":"单链结合蛋白","en":"SSB","def":"协同结合 ssDNA、稳定单链、加速退火、提高聚合酶持续合成能力。"},{"n":65,"ch":"第二章 分子克隆工具酶","stars":1,"term":"琼脂糖酶","en":"agarase","def":"水解琼脂糖，用于从低熔点琼脂糖中回收大片段 DNA。"},{"n":66,"ch":"第三章 分子克隆载体","stars":3,"term":"载体","en":"vector","def":"将外源 DNA/基因携带入宿主细胞的工具。三必需元件：复制起点（自主复制）、克隆位点（供外源插入）、标记基因（筛选）。"},{"n":67,"ch":"第三章 分子克隆载体","stars":3,"term":"质粒","en":"plasmid","def":"染色体外能自我复制的遗传因子，多为超螺旋双链共价闭合环状 DNA（cccDNA），大小 1–200 kb。"},{"n":68,"ch":"第三章 分子克隆载体","stars":3,"term":"质粒不相容性","en":"","def":"利用同一复制系统的两个质粒在同一宿主中不能共存的现象。"},{"n":69,"ch":"第三章 分子克隆载体","stars":3,"term":"标记基因","en":"marker gene","def":"分选择标记基因（选出已转化载体者）与筛选标记基因（选出携带外源片段的重组子）。"},{"n":70,"ch":"第三章 分子克隆载体","stars":3,"term":"报告基因","en":"reporter gene","def":"表达产物易被检测、用于标定目的基因表达调控的基因（如 GUS、GFP、Luc、CAT）。"},{"n":71,"ch":"第三章 分子克隆载体","stars":3,"term":"α-互补","en":"","def":"lacZ 基因缺失近操纵基因区段的突变体（α 肽）与带完整该区段的突变体间互补，恢复 β-半乳糖苷酶活性。"},{"n":72,"ch":"第三章 分子克隆载体","stars":3,"term":"蓝白斑筛选","en":"","def":"X-gal 为底物兼生色剂（被 β-半乳糖苷酶分解产生蓝色），IPTG 为诱导物；插入外源片段破坏 α-互补→白色菌落＝重组子，未插入→蓝色菌落＝非重组子。"},{"n":73,"ch":"第三章 分子克隆载体","stars":3,"term":"插入失活","en":"","def":"外源片段插入标记基因使其失活（如 pBR322 中插入 Tet 抗性基因），通过抗生素抗性/敏感判断是否插入。"},{"n":74,"ch":"第三章 分子克隆载体","stars":3,"term":"穿梭载体","en":"shuttle vector","def":"能在两类不同宿主中复制、增殖和选择的载体，至少含两套复制单元和两套选择标记。"},{"n":75,"ch":"第三章 分子克隆载体","stars":3,"term":"黏粒","en":"cosmid","def":"带 cos 序列（λ 噬菌体包装所需）的质粒，兼具质粒复制与噬菌体包装特性，可装载约 35–45 kb 外源片段。"},{"n":76,"ch":"第三章 分子克隆载体","stars":3,"term":"酵母人工染色体","en":"YAC","def":"利用酿酒酵母染色体复制元件（自主复制序列 ARS、着丝粒、端粒、选择标记）驱动外源片段复制，装载容量 >1 Mb。"},{"n":77,"ch":"第三章 分子克隆载体","stars":3,"term":"细菌人工染色体","en":"BAC","def":"基于大肠杆菌 F 质粒构建的低拷贝质粒载体，含 oriS、RepE、parA/parB/parC，装载约 100–300 kb。"},{"n":78,"ch":"第三章 分子克隆载体","stars":3,"term":"P1 人工染色体","en":"PAC","def":"结合 P1 载体和 BAC 特性，装载约 100 kb，只能电转化导入。"},{"n":79,"ch":"第三章 分子克隆载体","stars":3,"term":"基因文库","en":"gene library","def":"某生物基因组 DNA（或其片段）与载体体外重组、转化宿主后得到的大量克隆群体。"},{"n":80,"ch":"第三章 分子克隆载体","stars":2,"term":"克隆载体","en":"","def":"用于克隆扩增 DNA 片段的最简单载体（pBR322、pUC18/19 等）。"},{"n":81,"ch":"第三章 分子克隆载体","stars":2,"term":"细菌接合","en":"conjugation","def":"质粒通过细胞间沟通和染色体转移进入新宿主；需 mob、tra 基因及 bom 顺式元件。"},{"n":82,"ch":"第三章 分子克隆载体","stars":2,"term":"噬菌斑","en":"plaque","def":"噬菌体侵染细菌致宿主裂解、在琼脂上形成的透明圆斑（负菌落）。"},{"n":83,"ch":"第三章 分子克隆载体","stars":2,"term":"插入型载体 / 置换型载体","en":"","def":"通过特定酶切位点插入外源片段的载体；/ 以左右臂 + 可被替换的填充片段构成的载体。"},{"n":84,"ch":"第三章 分子克隆载体","stars":2,"term":"染色体步查","en":"","def":"从已知序列出发，逐步获得相邻未知序列的方法。"},{"n":85,"ch":"第三章 分子克隆载体","stars":2,"term":"M13 噬菌体","en":"","def":"基因组为单链环状 DNA 的丝状噬菌体，感染后不裂解宿主而从细胞分泌出子代颗粒。"},{"n":86,"ch":"第三章 分子克隆载体","stars":2,"term":"复制型 DNA","en":"RF DNA","def":"单链 M13 正链在宿主酶作用下转变成的环状双链 DNA。"},{"n":87,"ch":"第三章 分子克隆载体","stars":2,"term":"噬菌粒","en":"phagemid","def":"含质粒复制起点和 M13 主要基因间隔区的质粒载体；可作质粒复制，也可在辅助噬菌体下滚环复制产生 ssDNA。"},{"n":88,"ch":"第三章 分子克隆载体","stars":2,"term":"M13K07 辅助噬菌体","en":"","def":"M13 衍生株（基因 II 带 G→T 突变），其突变基因 II 产物对噬菌粒复制起点作用更有效，保证子代颗粒中噬菌粒 ssDNA 占优。"},{"n":89,"ch":"第三章 分子克隆载体","stars":2,"term":"fosmid 载体","en":"","def":"BAC 按 cosmid 方式构建文库的载体，装载约 40 kb，经噬菌体包装感染导入。"},{"n":90,"ch":"第三章 分子克隆载体","stars":2,"term":"P1 噬菌体","en":"","def":"大肠杆菌溶原性噬菌体，基因组双链线状约 110 kb，末端有约 10 kb 冗余；进入宿主环化，由 c1 基因调节溶原/裂解。"},{"n":91,"ch":"第三章 分子克隆载体","stars":2,"term":"递送载体 / 转移载体","en":"","def":"装载基因导入靶细胞的载体 / 通过同源重组把外源片段转移到受体基因组的载体。"},{"n":92,"ch":"第三章 分子克隆载体","stars":1,"term":"质粒拷贝数","en":"","def":"每细胞质粒个数；分严谨型（1 至数个）与松弛型（数百）。"},{"n":93,"ch":"第三章 分子克隆载体","stars":1,"term":"裂解生长 / 溶原状态","en":"","def":"噬菌体侵染后大量复制装配、裂解宿主 / 基因组整合（或作附加体）随宿主繁殖传递。"},{"n":94,"ch":"第三章 分子克隆载体","stars":1,"term":"感染复数","en":"MOI","def":"单个宿主细胞感染的噬菌体颗粒数。"},{"n":95,"ch":"第三章 分子克隆载体","stars":1,"term":"噬菌斑形成单位","en":"pfu","def":"形成 1 个噬菌斑所需的病毒数。"},{"n":96,"ch":"第三章 分子克隆载体","stars":1,"term":"端粒、着丝粒","en":"","def":"染色体末端保护序列 / 纺锤丝结合位点（保证染色体正确分配）。"},{"n":97,"ch":"第三章 分子克隆载体","stars":1,"term":"F 质粒","en":"F 因子","def":"供体菌的致育因子，在接合中起重要作用。"},{"n":98,"ch":"第三章 分子克隆载体","stars":1,"term":"嵌合体","en":"chimera）、缺口（gap","def":"不同遗传性状嵌合的个体 / 基因组中未被克隆到的部分。"},{"n":99,"ch":"第四章 表达载体","stars":3,"term":"表达载体","en":"expression vector","def":"在克隆载体骨架上增加表达元件（启动子、RBS、克隆位点、转录终止信号等），使外源基因能表达；区别克隆载体＝是否含表达元件（启动子—RBS—克隆位点—终止子）。"},{"n":100,"ch":"第四章 表达载体","stars":3,"term":"融合蛋白","en":"","def":"将两个或多个基因开放阅读框按序连接表达形成的杂合蛋白。"},{"n":101,"ch":"第四章 表达载体","stars":3,"term":"表达标签","en":"tag","def":"以融合蛋白形式表达、利用载体编码蛋白的特殊性质纯化目的蛋白的载体蛋白/多肽（GST、polyHis-6、protein A、CBD）。"},{"n":102,"ch":"第四章 表达载体","stars":3,"term":"穿梭载体","en":"","def":"见第三章（★★★）。"},{"n":103,"ch":"第四章 表达载体","stars":3,"term":"整合载体","en":"integration vector","def":"能将基因插入染色体的载体；分定点整合与随机整合，用于基因插入/敲除、构建随机突变体库。"},{"n":104,"ch":"第四章 表达载体","stars":3,"term":"基因敲除","en":"knockout","def":"用含已知序列的 DNA 片段与受体基因组同源序列发生同源重组、使特定基因功能丧失的技术。"},{"n":105,"ch":"第四章 表达载体","stars":3,"term":"转座子","en":"transposon","def":"染色体上可复制、位移的 DNA 序列（跳跃基因/移动基因），可从基因组一个位置\"跳跃\"到另一位置。"},{"n":106,"ch":"第四章 表达载体","stars":2,"term":"同源重组整合载体","en":"","def":"含大肠杆菌克隆载体骨架 + 便于同源重组的重组 DNA 片段（从待插入位点取出 DNA、把选择标记和多克隆位点插入中间）。"},{"n":107,"ch":"第四章 表达载体","stars":2,"term":"随机突变体库","en":"","def":"标记基因在载体携带下经 DNA 重组事件随机插入基因组形成的突变体集合。"},{"n":108,"ch":"第四章 表达载体","stars":2,"term":"转座酶","en":"","def":"由转座子编码、执行转座功能的酶，识别转座子两端特异序列，将其插入新靶位点（无同源性要求）。"},{"n":109,"ch":"第四章 表达载体","stars":2,"term":"质粒挽救","en":"plasmid rescue","def":"将含调节元件的质粒插入基因组、随机激活某基因，再据质粒酶切位点回收侧翼基因的方法。"},{"n":110,"ch":"第四章 表达载体","stars":2,"term":"基因陷阱","en":"gene trap","def":"依靠报告基因随机插入产生融合转录物/蛋白，通过检测报告基因推知基因及功能。"},{"n":111,"ch":"第四章 表达载体","stars":2,"term":"无细胞（体外翻译）表达系统","en":"","def":"以 DNA/mRNA 为模板，用细胞抽提物酶系 + 底物能量体外合成蛋白；分真核（兔网织红细胞、麦胚、酵母抽提物）与原核（大肠杆菌）系统；优点：内源 mRNA 干扰小、可加多模板、可特异标记产物。"},{"n":112,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":3,"term":"分子杂交","en":"核酸分子杂交","def":"来源不同但序列互补的两条多核苷酸链通过碱基配对形成稳定双链；其中一条链标记即探针，用于检测互补序列。"},{"n":113,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":3,"term":"探针","en":"probe","def":"被同位素/生物素等标记、与待测序列互补的核酸片段。"},{"n":114,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":3,"term":"Southern 杂交","en":"","def":"DNA 电泳转移至膜，与探针杂交（检测 DNA）。"},{"n":115,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":3,"term":"Northern 杂交","en":"","def":"RNA 电泳转移至膜，与探针杂交（检测 RNA/基因表达）。"},{"n":116,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":3,"term":"Western 杂交","en":"免疫印迹","def":"蛋白 SDS-PAGE 电泳后电转移至膜，用抗体免疫反应检测（检测蛋白/翻译水平）。"},{"n":117,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":3,"term":"RNA 干扰","en":"RNAi","def":"进化上保守的、由双链 RNA 诱发的同源 mRNA 高效特异性降解现象（转录后基因沉默）。dsRNA 被 Dicer 切割成 21–25 nt 的 siRNA，siRNA 引导 RISC 靶向切割同源 mRNA。"},{"n":118,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":3,"term":"EMSA","en":"凝胶阻滞/电泳迁移率变动实验","def":"检测 DNA 与蛋白质是否结合；蛋白结合 DNA 后电泳迁移率降低。"},{"n":119,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":3,"term":"DNase I 足迹实验","en":"footprinting","def":"检测 DNA 中与蛋白质结合的具体部位；蛋白保护其结合位点不被 DNase I 切割，在切割梯度中形成空白\"足迹\"。"},{"n":120,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":2,"term":"基因芯片","en":"DNA 芯片/微阵列","def":"将大量 DNA 探针固定于支持物，依据碱基互补与标记样品杂交，检测杂交信号判断靶分子数量（mRNA 表达量、突变检测、测序）。"},{"n":121,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":2,"term":"蛋白质芯片","en":"","def":"基于抗原抗体特异性结合，将大量蛋白固定成微阵列，检测蛋白相互作用/表达。"},{"n":122,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":2,"term":"CTAB 法抽提 DNA","en":"","def":"阳离子去污剂 CTAB 溶解细胞膜、与核酸形成复合物，低盐沉淀、高盐解离；氯仿抽提蛋白、异丙醇沉淀 DNA、75% 乙醇洗涤。"},{"n":123,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":2,"term":"脉冲场凝胶电泳","en":"PFGE","def":"分离大分子 DNA（如 BAC 大片段）。"},{"n":124,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":2,"term":"切口平移","en":"nick translation","def":"用 DNase I 在 dsDNA 上随机产生切口，DNA 聚合酶 I 的 5′→3′ 外切 + 聚合活性使切口平移并掺入标记 dNTP，用于标记探针。"},{"n":125,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":2,"term":"随机引物法标记","en":"","def":"用 6–10 nt 随机引物引导 DNA 聚合酶合成、掺入标记核苷酸标记探针。"},{"n":126,"ch":"第五章 核酸分子的分离、检测与分析技术","stars":2,"term":"末端标记","en":"","def":"Klenow/T4/T7 聚合酶补平或置换反应引入标记核苷酸；T4 PNK 标记 5′ 端；末端转移酶标记 3′ 端。"},{"n":127,"ch":"第六章 DNA 诱变","stars":3,"term":"定点诱变","en":"site-directed mutagenesis","def":"在 DNA 特定位置引入预定突变的诱变技术；方法包括寡核苷酸介导（Kunkel 法、位点选择诱变、转化子诱变）、盒式诱变、PCR 介导（大引物 PCR、重叠延伸 PCR/SOE、双向 PCR）。"},{"n":128,"ch":"第六章 DNA 诱变","stars":3,"term":"饱和诱变","en":"saturation mutagenesis","def":"在目标位点（或区域）引入所有可能氨基酸（或碱基）突变的定点诱变技术，用于全面筛选功能位点。"},{"n":129,"ch":"第六章 DNA 诱变","stars":3,"term":"DNA 改组","en":"DNA shuffling，有性 PCR","def":"将一组有一定同源性（>60%）的亲本基因随机打碎（DNase I/超声）、无引物重装、再标准 PCR 扩增的体外同源重组方法，加速产生基因多样性。"},{"n":130,"ch":"第六章 DNA 诱变","stars":3,"term":"蛋白质定向进化","en":"","def":"见第十六章（通过随机突变 + 重组 + 选择压力筛选期望蛋白，含 DNA shuffling）。"},{"n":131,"ch":"第六章 DNA 诱变","stars":2,"term":"随机诱变","en":"","def":"用物理（紫外线）、化学（烷化剂、亚硝酸）或易错 PCR 在基因组随机位点引入突变。"},{"n":132,"ch":"第六章 DNA 诱变","stars":2,"term":"盒式诱变","en":"","def":"用人工合成的含突变序列的寡核苷酸片段置换（连接）到酶切除去待突变片段的载体上。"},{"n":133,"ch":"第六章 DNA 诱变","stars":2,"term":"嵌套缺失","en":"nested deletion","def":"用 Bal31 等从 DNA 一端逐步缩短，构建一系列缺失体，用于功能分析或测序。"},{"n":134,"ch":"第六章 DNA 诱变","stars":2,"term":"Kunkel 法","en":"","def":"以含尿嘧啶的单链 DNA 为模板、突变引物引导合成，转入正常菌株后含尿嘧啶的模板链被尿嘧啶-N-糖基化酶降解，只留突变链。"},{"n":135,"ch":"第六章 DNA 诱变","stars":2,"term":"易错 PCR","en":"error-prone PCR","def":"降低聚合酶保真度（提高 Mg²⁺、加入 Mn²⁺、不平衡 dNTP）在扩增中随机引入突变。"},{"n":136,"ch":"第七章 PCR 技术及其应用","stars":3,"term":"聚合酶链式反应","en":"PCR","def":"模拟体内 DNA 复制，在体外选择性扩增 DNA 特定区域的技术，包括变性、复性（退火）、延伸三步循环。"},{"n":137,"ch":"第七章 PCR 技术及其应用","stars":3,"term":"反转录 PCR","en":"RT-PCR","def":"以 mRNA 反转录的 cDNA 为模板进行的 PCR，用于检测基因表达、鉴定转录序列突变、克隆 cDNA 末端。"},{"n":138,"ch":"第七章 PCR 技术及其应用","stars":3,"term":"实时荧光定量 PCR","en":"real-time qPCR","def":"利用荧光信号累积实时监测 PCR 进程，通过标准曲线定量模板。"},{"n":139,"ch":"第七章 PCR 技术及其应用","stars":3,"term":"Ct 值","en":"","def":"荧光强度达到设定阈值时的循环数；Ct 越小，起始模板越多。相对定量用 2^(-ΔΔCt) 法。"},{"n":140,"ch":"第七章 PCR 技术及其应用","stars":3,"term":"反向 PCR","en":"inverse PCR","def":"扩增已知序列侧翼未知序列；先用已知片段内部没有的酶切，再环化，据已知片段两端序列设计反向引物扩增侧翼。"},{"n":141,"ch":"第七章 PCR 技术及其应用","stars":3,"term":"重叠延伸 PCR","en":"SOE PCR","def":"用于片段拼接与定点诱变；两个片段末端重叠，混合退火延伸拼成全长。"},{"n":142,"ch":"第七章 PCR 技术及其应用","stars":3,"term":"TAIL-PCR","en":"热不对称交错 PCR","def":"用嵌套特异性引物 + 随机简并引物、不对称温度循环分级扩增已知序列侧翼（染色体步查、T-DNA/转座子插入位点鉴定）。"},{"n":143,"ch":"第七章 PCR 技术及其应用","stars":2,"term":"平台效应","en":"plateau effect","def":"PCR 后期产物积累按减弱指数速率增长的现象。"},{"n":144,"ch":"第七章 PCR 技术及其应用","stars":2,"term":"巢式 PCR","en":"nested PCR","def":"以第一次 PCR 产物为模板、用内侧引物二次扩增，减少非特异扩增。"},{"n":145,"ch":"第七章 PCR 技术及其应用","stars":2,"term":"多重 PCR","en":"","def":"一个反应中用一对以上引物同时扩增多个片段。"},{"n":146,"ch":"第七章 PCR 技术及其应用","stars":2,"term":"随机扩增多态性","en":"RAPD","def":"用 10–11 碱基单一固定引物扩增出随机大小片段产生 DNA 指纹。"},{"n":147,"ch":"第七章 PCR 技术及其应用","stars":2,"term":"扩增片段长度多态性","en":"AFLP","def":"基因组 DNA 双酶切后加接头、选择性 PCR 扩增产生指纹。"},{"n":148,"ch":"第七章 PCR 技术及其应用","stars":2,"term":"RACE","en":"cDNA 末端快速扩增","def":"扩增 mRNA 5′ 或 3′ 末端序列。"},{"n":149,"ch":"第七章 PCR 技术及其应用","stars":2,"term":"Gibson 组装","en":"","def":"无缝克隆技术；PCR 扩增片段末端加 15–20 bp 同源序列，用 T5 核酸外切酶产生 5′ 突出端互补配对，Taq 聚合酶补平、Taq 连接酶连接，一管完成多片段组装。"},{"n":150,"ch":"第七章 PCR 技术及其应用","stars":1,"term":"锚定 PCR、加端 PCR、标记 PCR、不对称 PCR","en":"","def":"衍生的 PCR 技术。"},{"n":151,"ch":"第七章 PCR 技术及其应用","stars":1,"term":"引物设计原则","en":"","def":"长度 15–30 nt，Tm≈(G+C)×4+(A+T)×2 接近 72℃；GC 含量 40–60%；3′ 端与模板互补、5′ 端可修饰；自身/引物间连续互补 <4 个碱基；3′ 端避开密码子第 3 位。"},{"n":152,"ch":"第八章 DNA 测序技术","stars":3,"term":"Sanger 双脱氧终止法","en":"","def":"以待测 DNA 为模板、寡核苷酸为引物，DNA 聚合酶催化合成；反应中加入少量 ddNTP，掺入后链合成终止，得到以各 ddNTP 结尾的不同长度片段群，电泳分离读出序列。"},{"n":153,"ch":"第八章 DNA 测序技术","stars":3,"term":"化学降解法","en":"Maxam-Gilbert","def":"将待测 DNA 5′ 端标记，用特定化学试剂修饰并打断不同碱基位点的磷酸二酯键，产生 5′ 端标记的不同长度片段，凝胶电泳读出序列。"},{"n":154,"ch":"第八章 DNA 测序技术","stars":3,"term":"鸟枪法","en":"shotgun/随机克隆测序","def":"将待测 DNA 随机打断构建随机重叠克隆文库，用通用引物测各克隆末端，据重叠序列拼接全长；适合中小型基因组。"},{"n":155,"ch":"第八章 DNA 测序技术","stars":2,"term":"测序酶","en":"sequenase","def":"改造 T7 DNA 聚合酶，3′→5′ 外切活性缺失，用于 Sanger 测长片段。"},{"n":156,"ch":"第八章 DNA 测序技术","stars":2,"term":"通用引物","en":"","def":"参照载体多克隆位点两侧固定序列设计的引物。"},{"n":157,"ch":"第八章 DNA 测序技术","stars":2,"term":"随机引物","en":"","def":"6–10 碱基的随机核苷酸混合物，用于标记探针。"},{"n":158,"ch":"第八章 DNA 测序技术","stars":2,"term":"引物步移","en":"primer walking","def":"据载体序列设计第一次引物测序，再据前次结果设计下一次引物递进测序。"},{"n":159,"ch":"第八章 DNA 测序技术","stars":2,"term":"第二代测序","en":"NGS，边合成边测序","def":"Illumina（可逆终止子+荧光）、SOLiD（两碱基测序/连接测序）、离子半导体（氢离子检测）、454 焦磷酸测序；高通量、低成本。"},{"n":160,"ch":"第八章 DNA 测序技术","stars":2,"term":"单分子测序","en":"","def":"Heliscope（单分子边合成边测序）、SMRT（PacBio，零模波导孔 ZMW）、纳米孔测序（Oxford Nanopore）；长读长、免扩增。"},{"n":161,"ch":"第八章 DNA 测序技术","stars":2,"term":"转录组","en":"transcriptome","def":"某生理条件下细胞内所有转录产物（或所有 mRNA）的集合。"},{"n":162,"ch":"第九章 基因组研究技术","stars":3,"term":"基因组","en":"genome","def":"特定生物全部染色体的遗传物质总和。"},{"n":163,"ch":"第九章 基因组研究技术","stars":3,"term":"CRISPR/Cas9","en":"","def":"利用 Cas9 核酸酶在向导 RNA（sgRNA）引导下对特定 DNA 序列定向切割的基因组编辑技术。关键元件：CRISPR 序列、Cas9 内切酶、PAM 位点（3–6 bp 被 Cas9 识别的位点）、sgRNA（含 20 nt 配对区 + 42 nt 发夹 + 40 nt 终止子）。原理：sgRNA 与靶 DNA 非模板链互补，Cas9 识别 PAM 并切割双链→细胞修复（NHEJ 产生突变 / HDR 定向编辑）。"},{"n":164,"ch":"第九章 基因组研究技术","stars":2,"term":"遗传作图","en":"","def":"用遗传学分析将基因/DNA 序列标定在染色体上，以重组频率表示遗传图距。"},{"n":165,"ch":"第九章 基因组研究技术","stars":2,"term":"单核苷酸多态性","en":"SNP","def":"不同物种/等位基因间单个或少数核苷酸差异。"},{"n":166,"ch":"第九章 基因组研究技术","stars":2,"term":"EST","en":"表达序列标签","def":"cDNA 测序得到的短序列，用于基因鉴定。"},{"n":167,"ch":"第九章 基因组研究技术","stars":2,"term":"外显子捕获","en":"exon trapping","def":"用小基因载体捕获基因组中完整外显子。"},{"n":168,"ch":"第九章 基因组研究技术","stars":2,"term":"功能基因组/蛋白质组","en":"","def":"2DGE（双向电泳）、定量蛋白质组学（iTRAQ、label-free）、酵母双杂交、蛋白质芯片。"},{"n":169,"ch":"第九章 基因组研究技术","stars":2,"term":"RNA-Seq","en":"","def":"转录组测序，检测基因组范围表达差异。"},{"n":170,"ch":"第十章 DNA 文库的构建及目的基因的筛选","stars":3,"term":"基因组 DNA 文库","en":"","def":"将生物全部基因组 DNA 用限制酶/机械力切成一定长度片段，与载体体外重组转化宿主，得到的所有阳性克隆集合（\"化整为零\"策略）。"},{"n":171,"ch":"第十章 DNA 文库的构建及目的基因的筛选","stars":3,"term":"cDNA 文库","en":"","def":"某器官/发育时期细胞内 mRNA 体外反转录成 cDNA 后克隆构建的文库；代表特定时空转录水平的基因群体，具组织与发育时期特异性。"},{"n":172,"ch":"第十章 DNA 文库的构建及目的基因的筛选","stars":3,"term":"互补 DNA","en":"cDNA","def":"与某 RNA 链互补的 DNA，由 mRNA 体外反转录形成。"},{"n":173,"ch":"第十章 DNA 文库的构建及目的基因的筛选","stars":3,"term":"基因组文库容量公式","en":"","def":"N = ln(1−p) / ln(1−f)（p＝期望覆盖概率，f＝插入片段占基因组比例）。"},{"n":174,"ch":"第十章 DNA 文库的构建及目的基因的筛选","stars":2,"term":"基因组文库构建五步","en":"","def":"①载体制备（纯度高、去磷酸化）②大分子量基因组 DNA 提取与部分酶切（分子量应为插入片段 3–5 倍）③连接转化/包装侵染（先小体系找最适比例、脱盐提效）④质量检测（覆盖倍数＝平均插入长度×克隆数/基因组长度）⑤扩增、分装、保存。"},{"n":175,"ch":"第十章 DNA 文库的构建及目的基因的筛选","stars":2,"term":"cDNA 文库构建四步","en":"","def":"①总 RNA 提取、mRNA 分离（oligo(dT)）②第一链 cDNA 合成（反转录酶）③第二链合成 ④双链 cDNA 克隆进载体导入宿主。"},{"n":176,"ch":"第十章 DNA 文库的构建及目的基因的筛选","stars":2,"term":"基因克隆（文库）筛选策略","en":"","def":"表型/功能筛选、核酸探针杂交（菌落原位杂交、Southern）、免疫学（抗体）筛选、PCR 筛选、α-互补蓝白斑。"},{"n":177,"ch":"第十一章 植物基因工程","stars":3,"term":"植物基因工程","en":"","def":"以植物为受体的基因操作，用基因克隆、遗传转化（农杆菌 Ti 质粒、基因枪、原生质体法等）及组织培养技术将外源基因整合到受体基因组并稳定遗传、表达。"},{"n":178,"ch":"第十一章 植物基因工程","stars":3,"term":"In planta 转化","en":"植物原位转化","def":"利用花粉及花粉管通道、子房、幼穗、种胚导入外源基因（花粉管导入法、子房/幼穗/幼胚注射法、种子浸泡法）。"},{"n":179,"ch":"第十一章 植物基因工程","stars":3,"term":"Ti 质粒 / T-DNA","en":"","def":"根癌农杆菌 Ti 质粒上可转移至植物基因组的 DNA 区段；Vir 区基因产物介导 T-DNA 加工与转移。"},{"n":180,"ch":"第十一章 植物基因工程","stars":3,"term":"原生质体介导法","en":"","def":"以原生质体为受体，用化学/物理手段直接导入外源 DNA。"},{"n":181,"ch":"第十一章 植物基因工程","stars":2,"term":"农杆菌转化机制","en":"T-DNA 转移","def":"受伤组织酚类物质诱导 Vir 基因表达→T-DNA 加工→与 VirD2/VirE2 结合经 IV 型分泌系统转移入植物细胞→整合到基因组。"},{"n":182,"ch":"第十一章 植物基因工程","stars":2,"term":"共整合载体 / 双元载体系统","en":"","def":"去除 T-DNA 致癌基因、引入小质粒序列保留边界 / 由含 T-DNA 与含 Vir 区的两个相容质粒构成的双质粒系统。"},{"n":183,"ch":"第十一章 植物基因工程","stars":2,"term":"植物选择标记","en":"","def":"NPTⅡ(neo)、HPT(hpt)、bar、EPSPS；**报告基因**：GUS、GFP、Luc、CAT。"},{"n":184,"ch":"第十一章 植物基因工程","stars":2,"term":"转基因沉默原因","en":"","def":"多拷贝整合、DNA 甲基化、顺式/反式失活、共抑制。"},{"n":185,"ch":"第十一章 植物基因工程","stars":2,"term":"基因沉默技术","en":"","def":"RNAi、反义 RNA、同源共抑制（见书写资料对照表）。"},{"n":186,"ch":"第十一章 植物基因工程","stars":2,"term":"耐储存番茄","en":"延熟","def":"ACC 合成酶反义基因、乙烯形成酶（EFE）反义基因、ACC 脱氨酶基因、PG（多聚半乳糖醛酸酶）反义基因抑制乙烯合成/果胶降解。"},{"n":187,"ch":"第十一章 植物基因工程","stars":2,"term":"抗虫棉/Bt","en":"","def":"苏云金芽孢杆菌 cry 杀虫蛋白基因导入植物。"},{"n":188,"ch":"第十一章 植物基因工程","stars":2,"term":"转基因作物商业化障碍","en":"","def":"抗生素标记安全性、超级杂草（基因漂移）、生态风险。"},{"n":189,"ch":"第十二章 动物基因工程","stars":3,"term":"动物转基因方法","en":"外源 DNA 导入细胞","def":"显微注射法、电激法（电穿孔）、基因枪法、脂质体法、磷酸钙共沉淀法、DEAE-葡聚糖法、病毒（反转录病毒/腺病毒）介导、胚胎干细胞（ES 细胞）法。"},{"n":190,"ch":"第十二章 动物基因工程","stars":3,"term":"显微注射法","en":"","def":"固定受体细胞后用显微注射仪将外源 DNA 直接注入细胞质或细胞核。"},{"n":191,"ch":"第十二章 动物基因工程","stars":3,"term":"电激法","en":"电穿孔","def":"高压电脉冲在细胞膜形成可逆瞬间通道，促进外源 DNA 进入。"},{"n":192,"ch":"第十二章 动物基因工程","stars":3,"term":"基因枪法","en":"","def":"外源 DNA 包被金粒/钨粒，高压射入受体细胞或组织。"},{"n":193,"ch":"第十二章 动物基因工程","stars":3,"term":"脂质体法","en":"","def":"脂类包裹 DNA 成球体，经吞噬/融合进入细胞。"},{"n":194,"ch":"第十二章 动物基因工程","stars":2,"term":"正负选择法","en":"","def":"正选择（如 neo 抗性）富集整合事件 + 负选择（如 HSV-tk 对更昔洛韦敏感）排除随机整合，富集同源重组（基因打靶）。"},{"n":195,"ch":"第十二章 动物基因工程","stars":2,"term":"ES 细胞","en":"胚胎干细胞","def":"具发育全能性的胚胎干细胞，用于基因打靶后经囊胚注射获得转基因动物。"},{"n":196,"ch":"第十二章 动物基因工程","stars":2,"term":"N 端法则","en":"","def":"蛋白质稳定性取决于 N 端氨基酸性质；N 端为 Arg/Lys/Leu/Phe/Tyr/Trp 时半衰期短（约 2 min），其它残基半衰期长（>10 h）。"},{"n":197,"ch":"第十二章 动物基因工程","stars":2,"term":"动物选择/报告标记","en":"","def":"neo（NPTⅡ）、tk（胸苷激酶）、luc、GFP。"},{"n":198,"ch":"第十二章 动物基因工程","stars":2,"term":"转基因动物应用","en":"","def":"生物反应器（乳腺/膀胱表达药用蛋白）、疾病模型、异种器官移植、品种改良。"},{"n":199,"ch":"第十三章 酵母基因工程","stars":2,"term":"酵母表达系统","en":"","def":"真核表达系统，能进行翻译后修饰（糖基化、二硫键形成、折叠），适合表达需修饰的真核蛋白。"},{"n":200,"ch":"第十三章 酵母基因工程","stars":2,"term":"酵母","en":"Saccharomyces cerevisiae","def":"单细胞真核微生物，有完整亚细胞结构、严谨表达调控，可无性（有丝分裂）与有性（减数分裂）繁殖。"},{"n":201,"ch":"第十三章 酵母基因工程","stars":2,"term":"酵母基因工程应用","en":"","def":"生产重组蛋白/酶制剂（木聚糖酶等）、谷胱甘肽发酵、乙肝疫苗（重组酵母表达 HBsAg）。"},{"n":202,"ch":"第十三章 酵母基因工程","stars":2,"term":"提高异源表达量","en":"","def":"提高基因在染色体上拷贝数、强启动子（GAL、AOX1）、优化密码子、分泌表达。"},{"n":203,"ch":"第十三章 酵母基因工程","stars":2,"term":"毕赤酵母","en":"Pichia pastoris","def":"甲醇营养型，AOX1 强启动子，高密度发酵。"},{"n":204,"ch":"第十四章 细菌基因工程","stars":2,"term":"大肠杆菌表达系统","en":"","def":"最常用原核表达系统；优点：遗传背景清楚、易操作、生长快；缺点：无翻译后修饰（不能糖基化）、易形成包涵体、分泌能力弱。"},{"n":205,"ch":"第十四章 细菌基因工程","stars":2,"term":"包涵体","en":"","def":"外源蛋白在 E.coli 中过量表达、错误折叠形成的不溶性聚集体；处理：降低温度、减诱导、弱启动子、融合表达（GST/MBP/Trx）、共表达分子伴侣、复性。"},{"n":206,"ch":"第十四章 细菌基因工程","stars":2,"term":"提高外源蛋白稳定性方法","en":"","def":"①定位周质/胞外②用蛋白酶缺陷菌株③低温培养④融合蛋白表达⑤置换氨基酸消除蛋白酶切点⑥疏水修饰。"},{"n":207,"ch":"第十四章 细菌基因工程","stars":2,"term":"生物农药","en":"","def":"利用生物活体或其代谢产物（如 Bt 杀虫蛋白）杀灭/抑制农业有害生物的制剂。"},{"n":208,"ch":"第十四章 细菌基因工程","stars":2,"term":"微生物肥料","en":"","def":"利用固氮菌、解磷菌、解钾菌、PGPR、菌根真菌等改善养分供应、提高产量。"},{"n":209,"ch":"第十四章 细菌基因工程","stars":2,"term":"农用抗生素","en":"","def":"抗生素发酵产生的具农药功能的次生代谢物（阿维菌素、链霉素、日光霉素）。"},{"n":210,"ch":"第十五章 病毒基因工程","stars":2,"term":"病毒载体","en":"","def":"改造的病毒基因组用作基因运载工具（反转录病毒载体、腺病毒载体、腺相关病毒 AAV、慢病毒载体、SV40、杆状病毒）。"},{"n":211,"ch":"第十五章 病毒基因工程","stars":2,"term":"病毒质粒载体","en":"","def":"一些具 DNA 基因组或生活史中出现 DNA 阶段的真核病毒改造而成的动物基因工程载体。"},{"n":212,"ch":"第十五章 病毒基因工程","stars":2,"term":"mRNA 疫苗","en":"","def":"将编码抗原蛋白的 mRNA 导入人体直接翻译成抗原蛋白，诱导特异性免疫应答；生产周期短、生物安全性高。"},{"n":213,"ch":"第十五章 病毒基因工程","stars":2,"term":"病毒载体应用","en":"","def":"基因治疗载体、疫苗载体、基因功能研究（过表达/敲低）。"},{"n":214,"ch":"第十六章 医药基因工程","stars":3,"term":"基因工程制药基本流程","en":"","def":"①目的基因获得（克隆/合成）②载体构建（表达载体）③工程菌/细胞培养（发酵/细胞培养）④目的产物分离纯化⑤鉴定与质控。"},{"n":215,"ch":"第十六章 医药基因工程","stars":3,"term":"基因工程药物","en":"","def":"重组蛋白药物（胰岛素、生长激素、干扰素、EPO、疫苗）、抗体药物、核酸药物。"},{"n":216,"ch":"第十六章 医药基因工程","stars":3,"term":"以哺乳动物细胞（CHO）为表达系统的重组疫苗路线","en":"","def":"选抗原基因→插入表达载体→导入 CHO 细胞→表达加工→分离纯化→验证→疫苗。"},{"n":217,"ch":"第十六章 医药基因工程","stars":2,"term":"蛋白质定向进化","en":"","def":"试管中模拟达尔文进化，通过随机突变和重组制造大量突变体，施加选择压力筛出期望特征的蛋白；不需了解结构信息即可改造。"},{"n":218,"ch":"第十六章 医药基因工程","stars":2,"term":"DNA 改组","en":"DNA shuffling","def":"DNA 随机打碎 + PCR 重新组装，使一组突变基因体外同源重组，加速产生基因多样性（有性 PCR）。"},{"n":219,"ch":"第十六章 医药基因工程","stars":2,"term":"蛋白质分离纯化","en":"","def":"亲和层析（His/Ni 柱、GST/谷胱甘肽）、离子交换、凝胶过滤；检测：SDS-PAGE、Western、Bradford 法定量。"},{"n":220,"ch":"第十六章 医药基因工程","stars":2,"term":"Bradford 法","en":"","def":"考马斯亮蓝与蛋白结合在 595 nm 有最大吸收，据标准曲线定量。"},{"n":221,"ch":"第十七章 基因工程的安全性","stars":2,"term":"实质等同性原则","en":"","def":"GM 生物产品与常规产品比较是否具实质等同性。"},{"n":222,"ch":"第十七章 基因工程的安全性","stars":2,"term":"个案分析原则","en":"","def":"针对不同基因、不同转化事件、不同环境条件作个案分析。"},{"n":223,"ch":"第十七章 基因工程的安全性","stars":2,"term":"熟知性原则 / 预防原则","en":"","def":"据安全使用的历史决定是否简化评价 / 科学不确定时采取预防为主措施。"},{"n":224,"ch":"第十七章 基因工程的安全性","stars":2,"term":"农业转基因生物安全性等级","en":"","def":"尚不存在危险、低度、中度、高度危险四级。"},{"n":225,"ch":"第十七章 基因工程的安全性","stars":2,"term":"安全性评价内容","en":"","def":"人体健康、农业生产、生态平衡三方面。"},{"n":226,"ch":"第十七章 基因工程的安全性","stars":2,"term":"农业转基因生物评价五阶段","en":"","def":"实验研究→中间试验→环境释放→生产性试验→生物安全证书。"},{"n":227,"ch":"第十七章 基因工程的安全性","stars":2,"term":"基因漂移 / 超级杂草","en":"","def":"转基因向野生近缘种自发转移；抗除草剂基因转入杂草形成难除\"超级杂草\"。"}]};</script>
+<script>
+(function () {
+  'use strict';
+  var G = globalThis.GradeCore;
+
+  var K_PROGRESS = 'mcyj-progress-v1';
+  var K_SETTINGS = 'mcyj-settings-v1';
+
+  var S = {
+    progress: {},
+    settings: { chapter: 'all', stars: 'all', mode: 'seq' },
+    queue: [],
+    pos: 0,
+    drafts: new Map(),
+    graded: null
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function store(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* file:// 个别浏览器禁写，忽略 */ }
+  }
+  function restore(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function () { t.classList.remove('show'); }, 1600);
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  var STAR_LABEL = { 3: '★★★ 必须默写', 2: '★★ 能复述', 1: '★ 能识别' };
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function buildQueue() {
+    var list = DATA.items.filter(function (it) {
+      if (S.settings.chapter !== 'all' && it.ch !== S.settings.chapter) return false;
+      if (S.settings.stars !== 'all' && String(it.stars) !== S.settings.stars) return false;
+      return true;
+    });
+    if (S.settings.mode === 'wrong') {
+      list = list.filter(function (it) { var p = S.progress[it.n]; return p && p.tries > 0 && p.best < 55; });
+    } else if (S.settings.mode === 'new') {
+      list = list.filter(function (it) { var p = S.progress[it.n]; return !p || !p.tries; });
+    } else if (S.settings.mode === 'random') {
+      list = shuffle(list);
+    }
+    S.queue = list;
+    S.pos = 0;
+  }
+
+  function current() { return S.queue[S.pos] || null; }
+
+  function stats() {
+    var done = 0, sum = 0, wrong = 0;
+    Object.keys(S.progress).forEach(function (k) {
+      var p = S.progress[k];
+      if (p && p.tries > 0) { done++; sum += p.best; if (p.best < 55) wrong++; }
+    });
+    return {
+      done: done,
+      avg: done ? Math.round(sum / done) : 0,
+      wrong: wrong,
+      total: DATA.items.length
+    };
+  }
+
+  function refreshChrome() {
+    var st = stats();
+    $('stats').textContent = '已练 ' + st.done + '/' + st.total + ' · 平均 ' + st.avg + ' 分';
+    $('wrong-count').textContent = st.wrong;
+    $('c-counter').textContent = S.queue.length ? (S.pos + 1) + ' / ' + S.queue.length : '0 / 0';
+  }
+
+  function resetResult() {
+    S.graded = null;
+    $('result').hidden = true;
+    $('r-kps').innerHTML = '';
+    $('r-answer').textContent = '';
+    $('r-score').innerHTML = '0<small> 分</small>';
+    $('r-tag').className = 'tag';
+    $('r-tag').textContent = '—';
+    $('r-sub').textContent = '';
+    $('btn-reveal').disabled = false;
+    $('btn-submit').disabled = false;
+  }
+
+  function render() {
+    var it = current();
+    resetResult();
+    refreshChrome();
+
+    if (!it) {
+      $('c-chapter').textContent = '没有题目';
+      $('c-star').textContent = '';
+      $('term').textContent = '这个筛选下没有题了';
+      $('hint').innerHTML = '换个章节、星级或模式试试；「只刷错题」在还没有错题时是空的。';
+      $('input').value = '';
+      $('input').disabled = true;
+      $('btn-submit').disabled = true;
+      $('btn-reveal').disabled = true;
+      return;
+    }
+
+    $('input').disabled = false;
+    $('c-chapter').textContent = it.ch || '未分章';
+    $('c-star').textContent = STAR_LABEL[it.stars] || '';
+    $('c-star').className = 'chip star' + it.stars;
+    $('term').textContent = it.term;
+
+    if (it.en) {
+      $('hint').innerHTML = '<button id="btn-en">显示英文名</button>';
+      $('btn-en').addEventListener('click', function () {
+        $('hint').textContent = it.en;
+      });
+    } else {
+      $('hint').textContent = '';
+    }
+
+    $('input').value = S.drafts.get(it.n) || '';
+    $('input').focus();
+  }
+
+  function renderResult(res, def) {
+    $('r-score').innerHTML = res.score + '<small> 分</small>';
+    var tag = $('r-tag');
+    tag.className = 'tag ' + res.level.tone;
+    tag.textContent = res.level.label;
+    $('r-sub').textContent = res.level.tip + ' · 要点命中 ' + res.hitCount + '/' + res.totalCount + ' · 作答 ' + res.chars + ' 字';
+
+    var icon = { hit: '✅', part: '⚠️', miss: '❌' };
+    $('r-kps').innerHTML = res.items.map(function (item) {
+      var body = item.mark.map(function (seg) {
+        return seg.miss ? '<mark>' + esc(seg.t) + '</mark>' : esc(seg.t);
+      }).join('');
+      return '<li><span class="ico">' + icon[item.status] + '</span><span class="txt">' + body +
+        '<span class="cov">' + item.coverage + '%</span></span></li>';
+    }).join('');
+
+    $('r-answer').textContent = def;
+    $('result').hidden = false;
+  }
+
+  function submit() {
+    var it = current();
+    if (!it) return;
+    var text = $('input').value;
+    var res = G.grade(it.def, text);
+    S.graded = res;
+    renderResult(res, it.def);
+
+    var p = S.progress[it.n] || { best: 0, tries: 0, last: '' };
+    p.tries += 1;
+    p.best = Math.max(p.best, res.score);
+    p.last = new Date().toISOString().slice(0, 10);
+    S.progress[it.n] = p;
+    store(K_PROGRESS, S.progress);
+    refreshChrome();
+    $('result').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function reveal() {
+    var it = current();
+    if (!it) return;
+    S.graded = null;
+    $('result').hidden = false;
+    $('r-kps').innerHTML = '';
+    $('r-score').innerHTML = '—';
+    $('r-tag').className = 'tag warn';
+    $('r-tag').textContent = '已看答案';
+    $('r-sub').textContent = '这一次不计分，建议合上答案再默写一遍';
+    $('r-answer').textContent = it.def;
+    $('btn-reveal').disabled = true;
+  }
+
+  function go(delta) {
+    var it = current();
+    if (it) S.drafts.set(it.n, $('input').value);
+    if (!S.queue.length) return;
+    S.pos = (S.pos + delta + S.queue.length) % S.queue.length;
+    render();
+  }
+
+  function rebuildAndRender(notice) {
+    buildQueue();
+    render();
+    if (notice) toast(notice);
+    if (!S.queue.length && S.settings.mode === 'wrong') toast('错题本是空的，先去练几道');
+  }
+
+  function bind() {
+    $('btn-submit').addEventListener('click', submit);
+    $('btn-reveal').addEventListener('click', reveal);
+    $('btn-skip').addEventListener('click', function () { go(1); });
+    $('btn-prev').addEventListener('click', function () { go(-1); });
+    $('btn-next').addEventListener('click', function () { go(1); });
+
+    $('input').addEventListener('input', function () {
+      var it = current();
+      if (it) S.drafts.set(it.n, $('input').value);
+    });
+    $('input').addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); submit(); }
+    });
+    // 手机上键盘弹起会盖住「提交判分」，聚焦后把按钮那一行滚进来
+    $('input').addEventListener('focus', function () {
+      if (window.matchMedia('(max-width: 560px)').matches) {
+        setTimeout(function () {
+          var bar = document.querySelector('.actions');
+          if (bar) bar.scrollIntoView({ block: 'end', behavior: 'smooth' });
+        }, 320);
+      }
+    });
+
+    $('f-chapter').addEventListener('change', function (e) {
+      S.settings.chapter = e.target.value; store(K_SETTINGS, S.settings); rebuildAndRender();
+    });
+    $('f-stars').addEventListener('change', function (e) {
+      S.settings.stars = e.target.value; store(K_SETTINGS, S.settings); rebuildAndRender();
+    });
+    $('f-mode').addEventListener('change', function (e) {
+      S.settings.mode = e.target.value; store(K_SETTINGS, S.settings); rebuildAndRender();
+    });
+
+    $('btn-wrongbook').addEventListener('click', function () {
+      $('f-mode').value = 'wrong';
+      S.settings.mode = 'wrong';
+      store(K_SETTINGS, S.settings);
+      rebuildAndRender();
+    });
+
+    $('btn-export').addEventListener('click', function () {
+      var st = stats();
+      var wrongItems = DATA.items.filter(function (it) {
+        var p = S.progress[it.n];
+        return p && p.tries > 0 && p.best < 55;
+      }).map(function (it) {
+        return { n: it.n, term: it.term, ch: it.ch, stars: it.stars, best: S.progress[it.n].best };
+      });
+      var payload = {
+        exportedAt: new Date().toISOString(),
+        stats: st,
+        progress: S.progress,
+        wrong: wrongItems
+      };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '名词解释进度-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      toast('已导出');
+    });
+
+    $('btn-reset').addEventListener('click', function () {
+      if (!confirm('清空本机所有练习进度（得分和错题本）？题目本身不受影响。')) return;
+      S.progress = {};
+      store(K_PROGRESS, S.progress);
+      rebuildAndRender('进度已清空');
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.target && e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight') go(1);
+      if (e.key === 'ArrowLeft') go(-1);
+    });
+  }
+
+  function init() {
+    document.title = DATA.meta.title + '练习器';
+    $('title').textContent = DATA.meta.title + '练习器';
+    $('foot-meta').textContent = DATA.meta.total + ' 条 · 来源 ' + DATA.meta.source;
+
+    S.progress = restore(K_PROGRESS, {});
+    S.settings = Object.assign(S.settings, restore(K_SETTINGS, {}));
+
+    // 手机上不该提示 Ctrl+Enter
+    var isTouch = window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(hover: none)').matches;
+    if (isTouch) {
+      $('input').placeholder = '用你自己的话写出定义，写完点下面的「提交判分」';
+    }
+
+    var sel = $('f-chapter');
+    sel.innerHTML = '<option value="all">全部章节</option>' + DATA.meta.chapters.map(function (ch) {
+      return '<option value="' + esc(ch) + '">' + esc(ch) + '</option>';
+    }).join('');
+    sel.value = S.settings.chapter;
+    $('f-stars').value = S.settings.stars;
+    $('f-mode').value = S.settings.mode;
+
+    bind();
+    buildQueue();
+    render();
+
+    // 只有通过 https 访问（也就是部署到 GitHub Pages 之后）才注册离线缓存；
+    // 双击本地文件时 file:// 不支持 service worker，自动跳过。
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('../sw.js').catch(function () { /* 离线缓存失败不影响做题 */ });
+      });
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

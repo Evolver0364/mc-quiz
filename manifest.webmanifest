@@ -1,7 +1,7 @@
 {
-  "name": "名词解释练习器",
-  "short_name": "名词解释",
-  "description": "227 条名词解释，本地判分，不联网、不花 token",
+  "name": "基因工程 · 练习区",
+  "short_name": "练习区",
+  "description": "名词解释 / 简答 / 选择题 / 综合分析，本地判分，不联网、不花 token",
   "lang": "zh-CN",
   "start_url": "./",
   "scope": "./",

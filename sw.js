@@ -1,15 +1,26 @@
 /*
- * 离线缓存：第一次打开（联网）之后，没网也能继续刷。
- * 策略：页面走「先网络、失败回缓存」——这样你更新了题库，重新打开就是新的；
- *       图标等静态文件走「先缓存、没有再去网络」。
+ * 站点级离线缓存：首页 + 两个练习器。
+ * 页面走「先网络、失败回缓存」——更新题库后重新打开就是新的；
+ * 图标等静态文件走「先缓存、没有再去网络」。
  */
-const CACHE = 'mcyj-v1';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
+const CACHE = 'mcq-site-v2';
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icon-180.png',
+  './icon-192.png',
+  './icon-512.png',
+  './mc/',
+  './mc/index.html',
+  './jd/',
+  './jd/index.html'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      .then((cache) => cache.addAll(ASSETS).catch(() => {}))
+      .then((cache) => Promise.all(ASSETS.map((u) => cache.add(u).catch(() => {}))))
       .then(() => self.skipWaiting())
   );
 });
@@ -31,10 +42,13 @@ self.addEventListener('fetch', (event) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(CACHE).then((cache) => cache.put('./index.html', copy)).catch(() => {});
+          const key = new URL(req.url).pathname.endsWith('/')
+            ? new URL(req.url).pathname + 'index.html'
+            : new URL(req.url).pathname;
+          caches.open(CACHE).then((cache) => cache.put(key, copy)).catch(() => {});
           return res;
         })
-        .catch(() => caches.match('./index.html').then((hit) => hit || caches.match('./')))
+        .catch(() => caches.match(new URL(req.url).pathname).then((hit) => hit || caches.match('./index.html')))
     );
     return;
   }
