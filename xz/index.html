@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="选择题">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<link rel="icon" href="../icon-192.png">
+<title>选择题练习器</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#fff; --ink:#1b1f24; --muted:#6b7280; --line:#e5e7eb;
+    --brand:#2f6feb; --brand-soft:#eaf1ff;
+    --good:#12805c; --good-bg:#e6f6ef;
+    --ok:#2f6feb;  --ok-bg:#eaf1ff;
+    --warn:#9a6700;--warn-bg:#fff4d6;
+    --bad:#b42318; --bad-bg:#fdecea;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#14161a; --card:#1c1f25; --ink:#e8eaed; --muted:#9aa3ad; --line:#2c3138;
+      --brand:#7aa2ff; --brand-soft:#1e2a44;
+      --good:#4ade80; --good-bg:#132a20;
+      --ok:#7aa2ff;  --ok-bg:#1e2a44;
+      --warn:#fbbf24;--warn-bg:#33280f;
+      --bad:#f87171; --bad-bg:#3a1715;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:820px;margin:0 auto;padding:18px 16px 64px}
+
+  header.top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  header.top h1{font-size:18px;margin:0}
+  .badge{font-size:12px;color:var(--good);background:var(--good-bg);border-radius:999px;padding:2px 9px}
+  .stats{margin-left:auto;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  select,button{font:inherit}
+  select{appearance:none;background:var(--card);color:var(--ink);border:1px solid var(--line);
+    border-radius:10px;padding:8px 30px 8px 11px;font-size:14px;max-width:100%;
+    background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 16px) 52%,calc(100% - 11px) 52%;
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:10px}
+  .chip{border:1px solid var(--line);border-radius:999px;padding:1px 9px}
+  .chip.mark{color:var(--good);border-color:color-mix(in srgb,var(--good) 40%,transparent)}
+  .counter{margin-left:auto;font-variant-numeric:tabular-nums}
+
+  .stem{font-size:19px;line-height:1.6;font-weight:600;margin:4px 0 16px;word-break:break-word}
+  .opts{display:flex;flex-direction:column;gap:9px}
+  .opt{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;
+    padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);
+    color:var(--ink);font-size:16px;line-height:1.55;cursor:pointer;transition:border-color .12s,background .12s}
+  .opt .k{flex:0 0 20px;font-weight:700;color:var(--muted)}
+  .opt:disabled{cursor:default}
+  .opt.right{border-color:var(--good);background:var(--good-bg)}
+  .opt.right .k{color:var(--good)}
+  .opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+  .opt.wrong .k{color:var(--bad)}
+  .opt.dim{opacity:.55}
+
+  .actions{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0 4px}
+  button.btn{border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:10px 16px;cursor:pointer;font-size:15px}
+  button.btn:active{transform:translateY(1px)}
+  button.btn.ghost{background:transparent}
+  .kbd{font-size:12px;opacity:.6;margin-left:6px}
+
+  .result{border-top:1px dashed var(--line);padding:16px 0 2px;margin-top:14px}
+  .verdict{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;margin-bottom:10px}
+  .verdict.ok{color:var(--good)}
+  .verdict.no{color:var(--bad)}
+  .verdict .pick{font-size:13px;font-weight:500;color:var(--muted)}
+  .answer{margin-top:12px;background:var(--brand-soft);border-radius:12px;padding:13px 15px;font-size:15px}
+  .answer h3{margin:0 0 6px;font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:600}
+  .answer p{margin:0 0 8px}
+  .answer p:last-child{margin:0}
+  .trap{color:var(--warn)}
+  .note{font-size:12.5px;color:var(--muted);margin:12px 0 0;line-height:1.6}
+  .nav{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+  .nav .spacer{flex:1}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(8px);
+    background:#111;color:#fff;padding:9px 15px;border-radius:10px;font-size:14px;
+    opacity:0;pointer-events:none;transition:.2s;z-index:20;max-width:90vw}
+  .toast.show{opacity:.95;transform:translateX(-50%) translateY(0)}
+  footer.foot{margin-top:22px;font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+  footer.foot button{background:none;border:0;color:var(--muted);text-decoration:underline dotted;cursor:pointer;padding:0;font-size:12px}
+
+  @media (max-width:560px){
+    .wrap{padding:14px 14px calc(26px + env(safe-area-inset-bottom))}
+    .stats{width:100%;margin-left:0;font-size:12.5px}
+    .filters select{flex:1 1 calc(50% - 7px);min-width:0;min-height:46px;font-size:16px}
+    .filters select:first-child{flex:1 1 100%}
+    .kbd{display:none}
+    .card{padding:16px 15px}
+    .stem{font-size:17.5px}
+    .opt{font-size:15.5px;padding:13px}
+    button.btn{min-height:48px;font-size:16px;flex:1 1 auto}
+    .nav .btn{flex:1 1 46%}
+    .nav .spacer{display:none}
+    .toast{bottom:calc(18px + env(safe-area-inset-bottom))}
+  }
+  button,select,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  button{-webkit-touch-callout:none;user-select:none}
+  select{font-size:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 id="title">选择题练习器</h1>
+    <span class="badge">纯本地 · 选了立刻判</span>
+    <span class="stats" id="stats"></span>
+  </header>
+
+  <div class="filters">
+    <select id="f-set" aria-label="套别"></select>
+    <select id="f-mode" aria-label="出题顺序">
+      <option value="seq">按顺序</option>
+      <option value="random">随机</option>
+      <option value="new">只刷没做过的</option>
+      <option value="wrong">只刷错题</option>
+    </select>
+  </div>
+
+  <main class="card">
+    <div class="meta">
+      <span class="chip" id="c-set"></span>
+      <span class="chip" id="c-no"></span>
+      <span class="chip mark">2 分</span>
+      <span class="counter" id="c-counter"></span>
+    </div>
+    <div class="stem" id="stem">—</div>
+    <div class="opts" id="opts"></div>
+
+    <div class="actions">
+      <button class="btn ghost" id="btn-reveal">直接看答案</button>
+      <button class="btn ghost" id="btn-skip">跳过</button>
+    </div>
+
+    <section class="result" id="result" hidden>
+      <div class="verdict" id="r-verdict"></div>
+      <div class="answer" id="r-answer"></div>
+      <p class="note">答案是原卷给的，解析是我写的——按 <b>A/B/C/D</b> 或 <b>1/2/3/4</b> 也能选。</p>
+    </section>
+
+    <div class="nav">
+      <button class="btn ghost" id="btn-prev">← 上一题</button>
+      <span class="spacer"></span>
+      <button class="btn" id="btn-next">下一题 →</button>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <button id="btn-wrongbook">错题本（<span id="wrong-count">0</span>）</button>
+    <button id="btn-export">导出进度</button>
+    <button id="btn-reset">清空进度</button>
+    <span id="foot-meta"></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>const DATA = {"meta":{"title":"基因工程 · 选择题","source":"04_自编模拟试卷_成册.md","total":45,"sets":["模拟卷（一）","模拟卷（二）","模拟卷（三）"],"builtAt":"2026-11-08"},"items":[{"n":1,"set":"模拟卷（一）","no":1,"stem":"下列载体中装载外源 DNA 片段容量最大的是","options":[{"key":"A","text":"黏粒载体"},{"key":"B","text":"细菌人工染色体（BAC）"},{"key":"C","text":"酵母人工染色体（YAC）"},{"key":"D","text":"λ 噬菌体"}],"answer":"C","explain":"YAC 装载 >1 Mb，BAC 100–300 kb，黏粒 35–45 kb，λ 噬菌体约 20 kb。","trap":"易错：把 BAC 当最大。量级顺序 YAC > BAC > 黏粒 > λ。"},{"n":2,"set":"模拟卷（一）","no":2,"stem":"分子生物学操作中，下列试剂使用时不需避光保存的是","options":[{"key":"A","text":"X-gal"},{"key":"B","text":"EB"},{"key":"C","text":"IPTG"},{"key":"D","text":"SYBR Green I"}],"answer":"C","explain":"EB 是强诱变剂、X-gal 和 SYBR Green I 见光分解，只有 IPTG 不用避光。","trap":"易错：把 X-gal 和 IPTG 一起记成\"要避光\"。"},{"n":3,"set":"模拟卷（一）","no":3,"stem":"植物与动物基因工程均可使用的选择标记基因是","options":[{"key":"A","text":"neo（NPTⅡ）"},{"key":"B","text":"bar"},{"key":"C","text":"luc"},{"key":"D","text":"tk"}],"answer":"A","explain":"neo（NPTⅡ）在植物和动物细胞都能用；bar 只用于植物，luc 是报告基因，tk 是动物负选择标记。","trap":""},{"n":4,"set":"模拟卷（一）","no":4,"stem":"下列属于无缝克隆技术的是","options":[{"key":"A","text":"TAIL-PCR"},{"key":"B","text":"EMSA"},{"key":"C","text":"Gibson 组装"},{"key":"D","text":"酵母单杂交"}],"answer":"C","explain":"Gibson 组装用 5′ 外切酶产生互补突出端，一管完成无缝连接。TAIL-PCR 是染色体步移，EMSA 查 DNA-蛋白结合，酵母单杂交查互作。","trap":""},{"n":5,"set":"模拟卷（一）","no":5,"stem":"为了扩增已知序列相邻的未知片段，应选用","options":[{"key":"A","text":"RT-PCR"},{"key":"B","text":"SOE PCR"},{"key":"C","text":"实时定量 PCR"},{"key":"D","text":"反向 PCR（inverse PCR）"}],"answer":"D","explain":"反向 PCR：先用已知片段内部没有的酶切，环化后用反向引物向外扩。","trap":"易错：SOE PCR 是拼片段，不是扩侧翼。"},{"n":6,"set":"模拟卷（一）","no":6,"stem":"下列不能用于基因组 DNA 编辑的技术是","options":[{"key":"A","text":"TALEN"},{"key":"B","text":"CRISPR-Cas9"},{"key":"C","text":"Cre-loxP"},{"key":"D","text":"iTRAQ"}],"answer":"D","explain":"iTRAQ 是蛋白质定量标记技术，不碰 DNA。TALEN/CRISPR 编辑，Cre-loxP 做位点特异性重组。","trap":""},{"n":7,"set":"模拟卷（一）","no":7,"stem":"下列不属于\"边合成边测序\"的技术是","options":[{"key":"A","text":"Illumina"},{"key":"B","text":"纳米孔测序"},{"key":"C","text":"SOLiD"},{"key":"D","text":"Heliscope"}],"answer":"C","explain":"SOLiD 是\"边连接边测序\"，不是合成法。","trap":"存疑：纳米孔是电信号测序，严格说也不是边合成边测序，本题选项有歧义，考场看题干措辞。"},{"n":8,"set":"模拟卷（一）","no":8,"stem":"实时定量 PCR 中，Ct 值代表","options":[{"key":"A","text":"基线范围"},{"key":"B","text":"荧光信号阈值"},{"key":"C","text":"模板浓度"},{"key":"D","text":"荧光强度达阈值时的循环数"}],"answer":"D","explain":"Ct 值＝荧光强度达到阈值时的循环数；Ct 越小，起始模板越多。","trap":""},{"n":9,"set":"模拟卷（一）","no":9,"stem":"若 A 基因对照/处理组 Ct 分别为 15 和 12，内参 actin 为 8 和 9，则处理使 A 基因表达","options":[{"key":"A","text":"增强 4 倍"},{"key":"B","text":"减弱 4 倍"},{"key":"C","text":"增强 16 倍"},{"key":"D","text":"减弱 16 倍"}],"answer":"C","explain":"ΔΔCt：对照 15−8=7，处理 12−9=3，ΔΔ=−4，2⁴=16 倍增强。","trap":"易错：先减内参再减对照，顺序颠倒会算成 1/16。"},{"n":10,"set":"模拟卷（一）","no":10,"stem":"限制酶在非标准条件下切割相似序列的现象称为","options":[{"key":"A","text":"位点偏爱"},{"key":"B","text":"星星活性"},{"key":"C","text":"插入失活"},{"key":"D","text":"α-互补"}],"answer":"B","explain":"非标准条件（高甘油、过量酶、低盐、高 pH）下切割相似序列，就是星星活性。","trap":""},{"n":11,"set":"模拟卷（一）","no":11,"stem":"识别相同序列但切割位点可能不同的限制酶称为","options":[{"key":"A","text":"同尾酶"},{"key":"B","text":"同裂酶"},{"key":"C","text":"切口酶"},{"key":"D","text":"归位内切酶"}],"answer":"B","explain":"同裂酶＝识别同一序列但切点可能不同；同尾酶＝识别不同序列但产生相同末端。","trap":"易错：这两个年年一起考，别记反。"},{"n":12,"set":"模拟卷（一）","no":12,"stem":"用于去除载体 5′ 磷酸、防止自身环化的酶是","options":[{"key":"A","text":"T4 多核苷酸激酶"},{"key":"B","text":"碱性磷酸酶"},{"key":"C","text":"末端转移酶"},{"key":"D","text":"T4 DNA 连接酶"}],"answer":"B","explain":"碱性磷酸酶去掉载体 5′ 磷酸，防止自连；T4 PNK 正好相反，是往 5′ 端加磷酸。","trap":""},{"n":13,"set":"模拟卷（一）","no":13,"stem":"蓝白斑筛选中，含外源插入片段的重组子菌落呈","options":[{"key":"A","text":"蓝色"},{"key":"B","text":"白色"},{"key":"C","text":"红色"},{"key":"D","text":"无色透明"}],"answer":"B","explain":"插入外源片段破坏了 α-互补，β-半乳糖苷酶失活，不能分解 X-gal，所以是白斑。","trap":"易错：记成\"重组变蓝\"。"},{"n":14,"set":"模拟卷（一）","no":14,"stem":"检测基因组范围基因表达差异最适宜的技术是","options":[{"key":"A","text":"RNA-Seq"},{"key":"B","text":"RT-PCR"},{"key":"C","text":"RAPD"},{"key":"D","text":"AFLP"}],"answer":"A","explain":"RNA-Seq 测全基因组范围的表达谱；RT-PCR 只看单个基因，RAPD/AFLP 是 DNA 指纹。","trap":""},{"n":15,"set":"模拟卷（一）","no":15,"stem":"基因工程制药的基本流程不包括","options":[{"key":"A","text":"载体构建"},{"key":"B","text":"工程菌培养"},{"key":"C","text":"产物分离纯化"},{"key":"D","text":"田间杂交育种"}],"answer":"D","explain":"制药流程＝获得目的基因→构建载体→工程菌/细胞培养→分离纯化→鉴定质控，没有田间育种这一步。","trap":""},{"n":16,"set":"模拟卷（二）","no":1,"stem":"以转导方式导入宿主细胞的大容量载体是","options":[{"key":"A","text":"cosmid"},{"key":"B","text":"BAC"},{"key":"C","text":"PAC"},{"key":"D","text":"上述均可"}],"answer":"D","explain":"存疑：cosmid 和 PAC 靠体外包装后转导，BAC 通常是电转化，所以\"上述均可\"未必成立；单选更稳妥的是 C（PAC/P1 包装）。这题本身有瑕疵。","trap":""},{"n":17,"set":"模拟卷（二）","no":2,"stem":"下列为有毒试剂、使用时需防护的是","options":[{"key":"A","text":"X-gal"},{"key":"B","text":"EB"},{"key":"C","text":"IPTG"},{"key":"D","text":"SYBR Green I"}],"answer":"B","explain":"EB（溴化乙锭）是强诱变剂，操作要戴手套防护。","trap":"易错：这题问的是\"防护\"，卷一第 2 题问的是\"避光\"，题干差一个字。"},{"n":18,"set":"模拟卷（二）","no":3,"stem":"以下酶中具有 5′→3′ 外切核酸酶活性的是","options":[{"key":"A","text":"Klenow 片段"},{"key":"B","text":"T4 DNA 聚合酶"},{"key":"C","text":"大肠杆菌 DNA 聚合酶 I"},{"key":"D","text":"测序酶"}],"answer":"C","explain":"大肠杆菌 DNA 聚合酶 I 三种活性齐全；Klenow、T4 聚合酶都去掉了 5′→3′ 外切，测序酶还去掉了 3′→5′ 外切。","trap":""},{"n":19,"set":"模拟卷（二）","no":4,"stem":"PCR 定点诱变最常用的方法是","options":[{"key":"A","text":"重叠延伸 PCR（SOE）"},{"key":"B","text":"RT-PCR"},{"key":"C","text":"实时定量 PCR"},{"key":"D","text":"RAPD"}],"answer":"A","explain":"重叠延伸 PCR（SOE）是 PCR 定点诱变最常用的做法：两段带重叠的片段退火延伸成全长。","trap":""},{"n":20,"set":"模拟卷（二）","no":5,"stem":"反转录酶具有的活性是","options":[{"key":"A","text":"5′→3′ 聚合酶活性"},{"key":"B","text":"3′→5′ 外切活性"},{"key":"C","text":"5′→3′ 外切活性"},{"key":"D","text":"无任何聚合活性"}],"answer":"A","explain":"反转录酶是依赖 RNA 的 DNA 聚合酶，有 5′→3′ 聚合活性，但没有 3′→5′ 校对活性。","trap":"易错：把\"没有校对\"记成\"没有聚合\"。"},{"n":21,"set":"模拟卷（二）","no":6,"stem":"cDNA 文库代表的是","options":[{"key":"A","text":"全部基因组"},{"key":"B","text":"某时空表达的基因群体"},{"key":"C","text":"全部蛋白质"},{"key":"D","text":"非编码 RNA"}],"answer":"B","explain":"cDNA 文库只收某个组织、某个时期转录出来的 mRNA，所以是\"某时空表达的基因群体\"；全部基因组是基因组文库。","trap":""},{"n":22,"set":"模拟卷（二）","no":7,"stem":"基因组文库容量公式 N = ln(1−p)/ln(1−f) 中，f 表示","options":[{"key":"A","text":"插入片段占基因组比例"},{"key":"B","text":"期望覆盖概率"},{"key":"C","text":"载体长度"},{"key":"D","text":"转化效率"}],"answer":"A","explain":"N = ln(1−p)/ln(1−f)：p 是期望覆盖概率，f 是插入片段占基因组的比例。","trap":""},{"n":23,"set":"模拟卷（二）","no":8,"stem":"下列属于第一代测序技术的是","options":[{"key":"A","text":"Sanger 双脱氧法"},{"key":"B","text":"Illumina"},{"key":"C","text":"纳米孔测序"},{"key":"D","text":"SOLiD"}],"answer":"A","explain":"Sanger 双脱氧法是一代；Illumina、SOLiD 是二代；纳米孔是三代。","trap":""},{"n":24,"set":"模拟卷（二）","no":9,"stem":"Dpn I 在定点诱变中的作用是","options":[{"key":"A","text":"连接 DNA"},{"key":"B","text":"切割甲基化模板 DNA"},{"key":"C","text":"补平末端"},{"key":"D","text":"引入突变"}],"answer":"B","explain":"Dpn I 只切 dam 甲基化的亲代模板链，新合成的、没甲基化的突变链留下来，所以突变率很高。","trap":""},{"n":25,"set":"模拟卷（二）","no":10,"stem":"质粒不相容性是指","options":[{"key":"A","text":"两个质粒不能共存于同一宿主"},{"key":"B","text":"质粒不能转化"},{"key":"C","text":"质粒不能复制"},{"key":"D","text":"质粒不能表达"}],"answer":"A","explain":"同一复制系统的两个质粒会互相排斥，不能共存于同一宿主——这就是质粒不相容性。","trap":""},{"n":26,"set":"模拟卷（二）","no":11,"stem":"用同尾酶连接后，原酶切位点会","options":[{"key":"A","text":"保留"},{"key":"B","text":"消失"},{"key":"C","text":"加倍"},{"key":"D","text":"甲基化"}],"answer":"B","explain":"同尾酶切开的两个末端连上以后形成新序列，原来的两个酶切位点都消失了。","trap":"易错：以为位点\"加倍\"。"},{"n":27,"set":"模拟卷（二）","no":12,"stem":"植物中常用的报告基因是","options":[{"key":"A","text":"GUS"},{"key":"B","text":"neo"},{"key":"C","text":"bar"},{"key":"D","text":"hpt"}],"answer":"A","explain":"GUS 是报告基因（表达产物好检测）；neo、bar、hpt 都是选择标记基因。","trap":"易错：选择和报告混为一谈。"},{"n":28,"set":"模拟卷（二）","no":13,"stem":"RNAi 过程中切割 dsRNA 的酶是","options":[{"key":"A","text":"Dicer"},{"key":"B","text":"RISC"},{"key":"C","text":"Cas9"},{"key":"D","text":"连接酶"}],"answer":"A","explain":"RNAi 第一步：Dicer 把 dsRNA 切成 21–25 nt 的 siRNA；第二步才是 RISC 拿 siRNA 去切靶 mRNA。","trap":""},{"n":29,"set":"模拟卷（二）","no":14,"stem":"毕赤酵母表达系统的优势是","options":[{"key":"A","text":"无翻译后修饰"},{"key":"B","text":"能进行糖基化等修饰"},{"key":"C","text":"不表达真核蛋白"},{"key":"D","text":"只用于原核蛋白"}],"answer":"B","explain":"毕赤酵母是真核表达系统，能做糖基化、二硫键、折叠这些翻译后修饰，这正是原核系统缺的。","trap":""},{"n":30,"set":"模拟卷（二）","no":15,"stem":"农业转基因生物安全性等级分为","options":[{"key":"A","text":"2 级"},{"key":"B","text":"3 级"},{"key":"C","text":"4 级"},{"key":"D","text":"5 级"}],"answer":"C","explain":"农业转基因生物安全性分 4 级：尚不存在危险、低度、中度、高度。","trap":""},{"n":31,"set":"模拟卷（三）","no":1,"stem":"边合成边测序的技术是","options":[{"key":"A","text":"SOLiD"},{"key":"B","text":"化学降解法"},{"key":"C","text":"Illumina"},{"key":"D","text":"纳米孔"}],"answer":"C","explain":"Illumina 用可逆终止子 + 荧光，是边合成边测序；SOLiD 是连接法，化学降解法是断裂法，纳米孔是电信号。","trap":""},{"n":32,"set":"模拟卷（三）","no":2,"stem":"新冠病毒（COVID-19）基因组大小的数量级约为","options":[{"key":"A","text":"10⁹"},{"key":"B","text":"10⁶"},{"key":"C","text":"10⁵"},{"key":"D","text":"10⁴"}],"answer":"D","explain":"新冠基因组约 30 kb，数量级 10⁴。","trap":"易错：记成 10⁶ 是把病毒和细菌搞混（大肠杆菌约 4.6 Mb）。"},{"n":33,"set":"模拟卷（三）","no":3,"stem":"检测 DNA 与蛋白质是否结合的实验是","options":[{"key":"A","text":"EMSA"},{"key":"B","text":"Southern"},{"key":"C","text":"Western"},{"key":"D","text":"Northern"}],"answer":"A","explain":"EMSA：蛋白结合 DNA 后复合物变大，电泳跑得慢，条带上移。Southern 查 DNA、Northern 查 RNA、Western 查蛋白。","trap":""},{"n":34,"set":"模拟卷（三）","no":4,"stem":"切口平移标记 DNA 利用的是","options":[{"key":"A","text":"Klenow 片段"},{"key":"B","text":"大肠杆菌 DNA 聚合酶 I"},{"key":"C","text":"T7 聚合酶"},{"key":"D","text":"末端转移酶"}],"answer":"B","explain":"切口平移靠大肠杆菌 DNA 聚合酶 I 的 5′→3′ 外切活性切出缺口，再靠聚合活性边切边补、掺入标记核苷酸。","trap":""},{"n":35,"set":"模拟卷（三）","no":5,"stem":"构建 cDNA 文库时合成第一链的酶是","options":[{"key":"A","text":"DNA 聚合酶 I"},{"key":"B","text":"反转录酶"},{"key":"C","text":"T4 连接酶"},{"key":"D","text":"RNase A"}],"answer":"B","explain":"第一链以 mRNA 为模板，只有反转录酶能干这活；第二链才用 DNA 聚合酶 I。","trap":""},{"n":36,"set":"模拟卷（三）","no":6,"stem":"下列不是植物遗传转化方法的是","options":[{"key":"A","text":"农杆菌介导"},{"key":"B","text":"基因枪"},{"key":"C","text":"显微注射"},{"key":"D","text":"电激法（可选项，多选时注意）"}],"answer":"C","explain":"存疑：植物其实也能做显微注射，但常规植物转化是农杆菌、基因枪、电激、原生质体。题干自带\"可选项\"提示，答案按原卷给 C。","trap":""},{"n":37,"set":"模拟卷（三）","no":7,"stem":"提高外源蛋白在大肠杆菌中稳定性的方法不包括","options":[{"key":"A","text":"融合表达"},{"key":"B","text":"低温培养"},{"key":"C","text":"高温诱导"},{"key":"D","text":"用蛋白酶缺陷菌株"}],"answer":"C","explain":"高温诱导会加快降解、促包涵体形成；融合表达、低温培养、蛋白酶缺陷菌株才是提稳定性的办法。","trap":""},{"n":38,"set":"模拟卷（三）","no":8,"stem":"常用来克隆大片段（>100 kb）的载体是","options":[{"key":"A","text":"质粒"},{"key":"B","text":"λ 噬菌体"},{"key":"C","text":"YAC/BAC"},{"key":"D","text":"M13"}],"answer":"C","explain":"只有人工染色体能装 >100 kb：YAC >1 Mb，BAC 100–300 kb；质粒一般 <10 kb，λ 约 20 kb，M13 约 1 kb。","trap":""},{"n":39,"set":"模拟卷（三）","no":9,"stem":"双脱氧核苷酸测序中，ddNTP 的作用是","options":[{"key":"A","text":"提供能量"},{"key":"B","text":"终止链延伸"},{"key":"C","text":"引物"},{"key":"D","text":"模板"}],"answer":"B","explain":"ddNTP 缺 3′-OH，掺进去以后下一个核苷酸接不上，链就停在那里——这是 Sanger 测序的核心。","trap":""},{"n":40,"set":"模拟卷（三）","no":10,"stem":"定点诱变中\"大引物 PCR\"需要","options":[{"key":"A","text":"1 个内部引物 + 1 对侧翼引物，2 次 PCR"},{"key":"B","text":"1 对引物 1 次 PCR"},{"key":"C","text":"只 1 个引物"},{"key":"D","text":"无需引物"}],"answer":"A","explain":"大引物 PCR：先用一对侧翼引物扩出带突变的小片段当\"大引物\"，再用它和另一侧引物做第二次 PCR。","trap":""},{"n":41,"set":"模拟卷（三）","no":11,"stem":"α-互补筛选中，X-gal 被 β-半乳糖苷酶分解后菌落呈","options":[{"key":"A","text":"蓝色"},{"key":"B","text":"白色"},{"key":"C","text":"黄色"},{"key":"D","text":"绿色"}],"answer":"A","explain":"有 β-半乳糖苷酶活性 → 分解 X-gal → 蓝色菌落；重组子插入片段破坏 α-互补 → 白色。","trap":"易错：卷一 13 问的是重组子颜色，这题问的是有酶活性的颜色。"},{"n":42,"set":"模拟卷（三）","no":12,"stem":"外源基因整合到受体基因组的检测方法是","options":[{"key":"A","text":"Southern 杂交"},{"key":"B","text":"RT-PCR"},{"key":"C","text":"Northern"},{"key":"D","text":"三者皆可"}],"answer":"A","explain":"检测\"整合\"是查 DNA，Southern 杂交；RT-PCR 和 Northern 查的是表达，不是整合。","trap":"易错：题目问整合你答表达。"},{"n":43,"set":"模拟卷（三）","no":13,"stem":"下列属于原核表达系统缺点的是","options":[{"key":"A","text":"无翻译后修饰"},{"key":"B","text":"生长慢"},{"key":"C","text":"难操作"},{"key":"D","text":"易污染"}],"answer":"A","explain":"原核系统最大的短板就是没有翻译后修饰（不能糖基化），另外还容易形成包涵体。","trap":""},{"n":44,"set":"模拟卷（三）","no":14,"stem":"基因漂移是指","options":[{"key":"A","text":"转基因向野生近缘种自发转移"},{"key":"B","text":"基因在染色体间移动"},{"key":"C","text":"质粒丢失"},{"key":"D","text":"转座子跳跃"}],"answer":"A","explain":"基因漂移：转基因通过花粉、种子跑到野生近缘种里，和转座子跳跃是两回事。","trap":""},{"n":45,"set":"模拟卷（三）","no":15,"stem":"酵母单杂交系统用于","options":[{"key":"A","text":"研究转录因子与 DNA 互作"},{"key":"B","text":"蛋白-蛋白互作"},{"key":"C","text":"DNA 测序"},{"key":"D","text":"基因敲除"}],"answer":"A","explain":"酵母单杂交查\"转录因子与 DNA 顺式元件\"的互作；蛋白-蛋白互作要用酵母双杂交。","trap":"易错：单杂交/双杂交年年混。"}]};</script>
+<script>
+(function () {
+  'use strict';
+  var K_PROGRESS = 'xz-progress-v1';
+  var K_SETTINGS = 'xz-settings-v1';
+
+  var S = { progress: {}, settings: { set: 'all', mode: 'seq' }, queue: [], pos: 0, answered: false, picked: '' };
+
+  function $(id) { return document.getElementById(id); }
+  function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function restore(k, d) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : d; } catch (e) { return d; } }
+  function toast(m) { var t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 1500); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function buildQueue() {
+    var list = DATA.items.filter(function (it) { return S.settings.set === 'all' || it.set === S.settings.set; });
+    if (S.settings.mode === 'wrong') list = list.filter(function (it) { var p = S.progress[it.n]; return p && p.last === 'wrong'; });
+    else if (S.settings.mode === 'new') list = list.filter(function (it) { var p = S.progress[it.n]; return !p || !p.tries; });
+    else if (S.settings.mode === 'random') list = shuffle(list);
+    S.queue = list; S.pos = 0;
+  }
+  function current() { return S.queue[S.pos] || null; }
+
+  function stats() {
+    var done = 0, tries = 0, right = 0, wrong = 0;
+    Object.keys(S.progress).forEach(function (k) {
+      var p = S.progress[k];
+      if (!p || !p.tries) return;
+      done++; tries += p.tries; right += p.right || 0;
+      if (p.last === 'wrong') wrong++;
+    });
+    return { done: done, tries: tries, right: right, wrong: wrong, total: DATA.items.length, rate: tries ? Math.round(right / tries * 100) : 0 };
+  }
+
+  function refreshChrome() {
+    var st = stats();
+    $('stats').textContent = '已练 ' + st.done + '/' + st.total + ' · 正确率 ' + st.rate + '%';
+    $('wrong-count').textContent = st.wrong;
+    $('c-counter').textContent = S.queue.length ? (S.pos + 1) + ' / ' + S.queue.length : '0 / 0';
+  }
+
+  function paint(it, picked) {
+    var opts = $('opts');
+    opts.innerHTML = '';
+    it.options.forEach(function (o) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.type = 'button';
+      b.innerHTML = '<span class="k">' + o.key + '</span><span class="t">' + esc(o.text) + '</span>';
+      b.dataset.key = o.key;
+      if (picked) {
+        if (o.key === it.answer) b.classList.add('right');
+        else if (o.key === picked) b.classList.add('wrong');
+        else b.classList.add('dim');
+        b.disabled = true;
+      } else {
+        b.addEventListener('click', function () { answer(o.key); });
+      }
+      opts.appendChild(b);
+    });
+  }
+
+  function render() {
+    var it = current();
+    S.answered = false; S.picked = '';
+    $('result').hidden = true;
+    $('r-verdict').innerHTML = '';
+    $('r-answer').innerHTML = '';
+    $('btn-reveal').disabled = false;
+    refreshChrome();
+
+    if (!it) {
+      $('c-set').textContent = '没有题目';
+      $('c-no').textContent = '';
+      $('stem').textContent = '这个筛选下没有题了';
+      $('opts').innerHTML = '';
+      return;
+    }
+    $('c-set').textContent = it.set;
+    $('c-no').textContent = '第 ' + it.no + ' 题';
+    $('stem').textContent = it.stem;
+    paint(it, '');
+  }
+
+  function showAnswer(it, picked) {
+    S.answered = true; S.picked = picked;
+    paint(it, picked);
+    var right = picked === it.answer;
+    var v = $('r-verdict');
+    v.className = 'verdict ' + (picked ? (right ? 'ok' : 'no') : '');
+    if (!picked) v.innerHTML = '答案：' + it.answer;
+    else if (right) v.innerHTML = '✅ 对了 <span class="pick">你选 ' + picked + '</span>';
+    else v.innerHTML = '❌ 错了 <span class="pick">你选 ' + picked + '，正确是 ' + it.answer + '</span>';
+
+    var html = '<h3>正确答案：' + it.answer + '</h3>';
+    if (it.explain) html += '<p>' + esc(it.explain) + '</p>';
+    if (it.trap) html += '<p class="trap">⚠️ ' + esc(it.trap) + '</p>';
+    if (!it.explain && !it.trap) html += '<p style="color:var(--muted)">这道题还没写解析。</p>';
+    $('r-answer').innerHTML = html;
+    $('result').hidden = false;
+  }
+
+  function answer(key) {
+    var it = current();
+    if (!it || S.answered) return;
+    showAnswer(it, key);
+    var p = S.progress[it.n] || { tries: 0, right: 0, last: '' };
+    p.tries += 1;
+    if (key === it.answer) { p.right = (p.right || 0) + 1; p.last = 'right'; }
+    else p.last = 'wrong';
+    S.progress[it.n] = p;
+    store(K_PROGRESS, S.progress);
+    refreshChrome();
+    setTimeout(function () { $('result').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 30);
+  }
+
+  function reveal() {
+    var it = current();
+    if (!it) return;
+    showAnswer(it, '');
+    $('btn-reveal').disabled = true;
+  }
+
+  function go(delta) {
+    if (!S.queue.length) return;
+    S.pos = (S.pos + delta + S.queue.length) % S.queue.length;
+    render();
+  }
+
+  function rebuild(notice) {
+    buildQueue(); render();
+    if (notice) toast(notice);
+    if (!S.queue.length && S.settings.mode === 'wrong') toast('错题本是空的，先去练几道');
+  }
+
+  function bind() {
+    $('btn-next').addEventListener('click', function () { go(1); });
+    $('btn-prev').addEventListener('click', function () { go(-1); });
+    $('btn-skip').addEventListener('click', function () { go(1); });
+    $('btn-reveal').addEventListener('click', reveal);
+    $('f-set').addEventListener('change', function (e) { S.settings.set = e.target.value; store(K_SETTINGS, S.settings); rebuild(); });
+    $('f-mode').addEventListener('change', function (e) { S.settings.mode = e.target.value; store(K_SETTINGS, S.settings); rebuild(); });
+    $('btn-wrongbook').addEventListener('click', function () {
+      $('f-mode').value = 'wrong'; S.settings.mode = 'wrong'; store(K_SETTINGS, S.settings); rebuild();
+    });
+    $('btn-export').addEventListener('click', function () {
+      var payload = { exportedAt: new Date().toISOString(), stats: stats(), progress: S.progress };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '选择题进度-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      toast('已导出');
+    });
+    $('btn-reset').addEventListener('click', function () {
+      if (!confirm('清空本机所有练习进度（得分和错题本）？题目本身不受影响。')) return;
+      S.progress = {}; store(K_PROGRESS, S.progress); rebuild('进度已清空');
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      var k = e.key.toUpperCase();
+      var idx = 'ABCD'.indexOf(k);
+      if (idx < 0) idx = ['1', '2', '3', '4'].indexOf(e.key);
+      var it = current();
+      if (idx >= 0 && it && !S.answered && it.options[idx]) { e.preventDefault(); answer(it.options[idx].key); return; }
+      if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); go(1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+    });
+  }
+
+  function init() {
+    document.title = DATA.meta.title + '练习器';
+    $('title').textContent = DATA.meta.title + '练习器';
+    $('foot-meta').textContent = DATA.meta.total + ' 道 · 来源 ' + DATA.meta.source;
+    S.progress = restore(K_PROGRESS, {});
+    S.settings = Object.assign(S.settings, restore(K_SETTINGS, {}));
+
+    var sel = $('f-set');
+    sel.innerHTML = '<option value="all">全部套卷</option>' + DATA.meta.sets.map(function (s) {
+      return '<option value="' + esc(s) + '">' + esc(s) + '</option>';
+    }).join('');
+    sel.value = S.settings.set;
+    $('f-mode').value = S.settings.mode;
+
+    bind(); buildQueue(); render();
+
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      window.addEventListener('load', function () { navigator.serviceWorker.register('../sw.js').catch(function () {}); });
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
