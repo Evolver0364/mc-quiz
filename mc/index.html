@@ -152,11 +152,17 @@
   button.btn{-webkit-touch-callout:none;user-select:none}
   /* iOS 上表单控件小于 16px 会在聚焦时把整页放大 */
   select,textarea{font-size:16px}
+  /* 返回入口页 */
+  .back{align-self:center;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;
+    border-radius:11px;border:1px solid var(--line);color:var(--muted);text-decoration:none;
+    font-size:19px;line-height:1;flex:0 0 auto;transition:border-color .15s,color .15s}
+  .back:hover{border-color:var(--brand);color:var(--brand)}
+  .back:active{transform:translateY(1px)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
+  <header class="top"><a class="back" href="../" aria-label="返回入口页" title="返回入口页">←</a>
     <h1 id="title">名词解释练习器</h1>
     <span class="badge">纯本地 · 不联网 · 不花 token</span>
     <span class="stats" id="stats"></span>
