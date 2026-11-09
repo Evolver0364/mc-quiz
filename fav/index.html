@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="收藏夹">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<link rel="icon" href="../icon-192.png">
+<title>收藏夹</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#fff; --ink:#1b1f24; --muted:#6b7280; --line:#e5e7eb;
+    --brand:#2f6feb; --brand-soft:#eaf1ff; --gold:#f5a623;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#14161a;--card:#1c1f25;--ink:#e8eaed;--muted:#9aa3ad;--line:#2c3138;
+      --brand:#7aa2ff;--brand-soft:#1e2a44;}
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-text-size-adjust:100%}
+  .wrap{max-width:760px;margin:0 auto;padding:18px 16px calc(48px + env(safe-area-inset-bottom))}
+  header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  header h1{font-size:19px;margin:0}
+  .count{font-size:13px;color:var(--muted);margin-left:auto}
+  .back{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;
+    border-radius:11px;border:1px solid var(--line);color:var(--muted);text-decoration:none;font-size:19px;line-height:1}
+  .back:hover{border-color:var(--brand);color:var(--brand)}
+  .grp{margin-bottom:18px}
+  .grp h2{font-size:13px;color:var(--muted);letter-spacing:.06em;margin:0 0 8px;font-weight:600}
+  a.item{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;margin-bottom:8px;text-decoration:none;color:inherit}
+  a.item:hover{border-color:var(--brand)}
+  .txt{font-size:15px;line-height:1.5;margin-bottom:4px;word-break:break-word}
+  .meta{font-size:12px;color:var(--muted)}
+  .empty{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px 20px;text-align:center;color:var(--muted);font-size:14.5px;line-height:1.8}
+  .empty b{color:var(--ink)}
+  .clear{margin-top:6px;font-size:12.5px;color:var(--muted);background:none;border:0;text-decoration:underline dotted;cursor:pointer;padding:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../" aria-label="返回入口页">←</a>
+    <h1>收藏夹</h1>
+    <span class="count" id="count"></span>
+  </header>
+  <div id="list"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var TOOLS = [
+    { key: 'mc', name: '名词解释', href: '../mc/' },
+    { key: 'jd', name: '简答', href: '../jd/' },
+    { key: 'xz', name: '选择题', href: '../xz/' },
+    { key: 'zt', name: '真题速刷', href: '../zt/' },
+    { key: 'bs', name: '背诵手册', href: '../bs/' }
+  ];
+  var K = 'fav-v1';
+
+  function load() { try { return JSON.parse(localStorage.getItem(K) || '{}'); } catch (e) { return {}; } }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function render() {
+    var all = load();
+    var total = 0;
+    var html = '';
+    TOOLS.forEach(function (t) {
+      var list = all[t.key] || [];
+      if (!list.length) return;
+      total += list.length;
+      html += '<div class="grp"><h2>' + t.name + '（' + list.length + '）· <a href="' + t.href + '" style="color:inherit">去练习</a></h2>';
+      list.sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+      list.forEach(function (f) {
+        var href = t.href + '#' + encodeURIComponent(f.id);
+        html += '<a class="item" href="' + href + '">' +
+          '<div class="txt">' + esc(f.text || '（没有题干）') + '</div>' +
+          '<div class="meta">' + esc(f.set || '') + ' · 点击跳转</div></a>';
+      });
+      html += '</div>';
+    });
+    document.getElementById('count').textContent = total ? total + ' 题' : '';
+    document.getElementById('list').innerHTML = html || (
+      '<div class="empty">还没有收藏。<br>在任意练习页的右上角点一下 <b style="color:var(--gold)">☆</b>，' +
+      '这道题就会出现在这里。<br><a href="../" style="color:var(--brand)">回入口页</a></div>'
+    );
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

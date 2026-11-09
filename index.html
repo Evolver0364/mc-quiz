@@ -39,6 +39,9 @@
   }
   .wrap{max-width:720px;margin:0 auto;padding:26px 16px calc(40px + env(safe-area-inset-bottom))}
   h1{font-size:23px;margin:0 0 4px;letter-spacing:.01em}
+  .hd{display:flex;align-items:baseline;gap:10px}
+  .favlink{margin-left:auto;font-size:13.5px;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 11px}
+  .favlink:hover{color:#f5a623;border-color:#f5a623}
   .sub{color:var(--muted);font-size:13.5px;margin-bottom:22px}
   .sub b{color:var(--ink);font-weight:600}
 
@@ -74,8 +77,8 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>基因工程 · 练习区</h1>
-  <div class="sub">华农 873 · 满分 150 · 拆开练，判分都在本机 <span class="badge">不花 token</span></div>
+  <div class="hd"><h1>基因工程 · 练习区</h1><a class="favlink" href="fav/">★ 收藏夹</a></div>
+  <div class="sub">华农 873 · 满分 150 · 拆开练</div>
 
   <div class="list" id="list"></div>
 
