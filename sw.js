@@ -3,7 +3,7 @@
  * 页面走「先网络、失败回缓存」——更新题库后重新打开就是新的；
  * 图标等静态文件走「先缓存、没有再去网络」。
  */
-const CACHE = 'mcq-site-v18';
+const CACHE = 'mcq-site-v19';
 const ASSETS = [
   './',
   './index.html',
